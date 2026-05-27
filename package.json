@@ -1,7 +1,7 @@
 {
   "name": "rivierplaas-bookings",
   "version": "1.0.0",
-  "description": "Venue booking system for Rivierplaas",
+  "description": "Venue booking system for Rivierplaas Farm",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
