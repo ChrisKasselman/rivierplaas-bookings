@@ -1,0 +1,33 @@
+<%- include('./layout-top', { title: 'Room Availability', page: 'rooms', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Room availability</h1>
+</div>
+
+<form method="GET" action="/rooms" class="filter-bar">
+  <input type="date" name="date" value="<%= date %>">
+  <select name="venue" onchange="this.form.submit()">
+    <option value="Ommidraai" <%= venue==='Ommidraai'?'selected':'' %>>Ommidraai</option>
+    <option value="Inniebos" <%= venue==='Inniebos'?'selected':'' %>>Inniebos</option>
+  </select>
+  <button type="submit" class="btn btn-secondary">Check</button>
+</form>
+
+<div class="rooms-grid">
+  <% for(let i = 1; i <= maxRooms; i++) {
+    const guest = bookedMap[i];
+  %>
+  <div class="room-card <%= guest ? 'booked' : 'available' %>">
+    <div class="room-number">Room <%= i %></div>
+    <div class="room-status-label"><%= guest ? 'Booked' : 'Available' %></div>
+    <% if(guest) { %>
+      <div class="room-guest"><%= guest %></div>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<div class="rooms-legend">
+  <span class="legend-item"><span class="legend-dot available"></span> Available</span>
+  <span class="legend-item"><span class="legend-dot booked"></span> Booked</span>
+</div>
+<%- include('./layout-bottom') %>

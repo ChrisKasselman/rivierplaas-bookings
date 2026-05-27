@@ -1,0 +1,75 @@
+<%- include('../layout-top', { title: 'Bookings', page: 'bookings', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Bookings</h1>
+  <a href="/bookings/new" class="btn btn-primary">+ New booking</a>
+</div>
+
+<form method="GET" action="/bookings" class="filter-bar">
+  <input type="text" name="search" placeholder="Search name, email, cell…" value="<%= search %>">
+  <select name="venue" onchange="this.form.submit()">
+    <option value="">All venues</option>
+    <option value="Ommidraai" <%= venue==='Ommidraai'?'selected':'' %>>Ommidraai</option>
+    <option value="Inniebos" <%= venue==='Inniebos'?'selected':'' %>>Inniebos</option>
+  </select>
+  <select name="payment" onchange="this.form.submit()">
+    <option value="">All payments</option>
+    <option value="fully_paid" <%= payment==='fully_paid'?'selected':'' %>>Fully paid</option>
+    <option value="deposit" <%= payment==='deposit'?'selected':'' %>>Deposit only</option>
+    <option value="unpaid" <%= payment==='unpaid'?'selected':'' %>>Unpaid</option>
+  </select>
+  <button type="submit" class="btn btn-secondary">Search</button>
+  <a href="/bookings" class="btn btn-ghost">Clear</a>
+</form>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Guest</th>
+        <th>Contact</th>
+        <th>Venue</th>
+        <th>Room</th>
+        <th>Check-in</th>
+        <th>Check-out</th>
+        <th>Payment</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(bookings.length === 0) { %>
+      <tr><td colspan="8" class="empty-row">No bookings found.</td></tr>
+      <% } %>
+      <% bookings.forEach(b => { %>
+      <tr>
+        <td><strong><%= b.firstname %> <%= b.surname %></strong></td>
+        <td class="contact-cell">
+          <span><%= b.email %></span>
+          <span class="muted"><%= b.cell %></span>
+        </td>
+        <td><span class="badge badge-venue"><%= b.venue %></span></td>
+        <td>Room <%= b.room %></td>
+        <td><%= new Date(b.checkin).toLocaleDateString('en-ZA') %></td>
+        <td><%= new Date(b.checkout).toLocaleDateString('en-ZA') %></td>
+        <td>
+          <% if(b.fully_paid) { %>
+            <span class="badge badge-success">Fully paid</span>
+          <% } else if(b.deposit_paid) { %>
+            <span class="badge badge-warning">Deposit</span>
+          <% } else { %>
+            <span class="badge badge-danger">Unpaid</span>
+          <% } %>
+        </td>
+        <td class="actions-cell">
+          <a href="/bookings/<%= b.id %>/edit" class="btn btn-sm">Edit</a>
+          <% if(user.role === 'manager') { %>
+          <form method="POST" action="/bookings/<%= b.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this booking?')">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../layout-bottom') %>

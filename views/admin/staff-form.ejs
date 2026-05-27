@@ -1,0 +1,48 @@
+<%- include('../layout-top', { title: staff && staff.id ? 'Edit Staff' : 'Add Staff', page: 'admin', user }) %>
+<div class="page-header">
+  <h1 class="page-title"><%= staff && staff.id ? 'Edit staff account' : 'Add staff account' %></h1>
+  <a href="/admin" class="btn btn-ghost">← Back</a>
+</div>
+
+<% if(error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="form-card">
+  <form method="POST" action="/admin/staff/<%= staff && staff.id ? staff.id + '/edit' : 'new' %>">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Full name <span class="req">*</span></label>
+        <input type="text" name="name" value="<%= staff ? staff.name||'' : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Email address <span class="req">*</span></label>
+        <input type="email" name="email" value="<%= staff ? staff.email||'' : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Role <span class="req">*</span></label>
+        <select name="role">
+          <option value="staff" <%= !staff || staff.role==='staff' ? 'selected' : '' %>>Staff</option>
+          <option value="manager" <%= staff && staff.role==='manager' ? 'selected' : '' %>>Manager</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Venue access</label>
+        <select name="venue">
+          <option value="Both" <%= !staff || staff.venue==='Both' ? 'selected' : '' %>>Both venues</option>
+          <option value="Ommidraai" <%= staff && staff.venue==='Ommidraai' ? 'selected' : '' %>>Ommidraai only</option>
+          <option value="Inniebos" <%= staff && staff.venue==='Inniebos' ? 'selected' : '' %>>Inniebos only</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label><%= staff && staff.id ? 'New password (leave blank to keep current)' : 'Password *' %></label>
+        <input type="password" name="password" placeholder="••••••••" <%= staff && staff.id ? '' : 'required' %>>
+      </div>
+    </div>
+    <div class="form-footer">
+      <a href="/admin" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save account</button>
+    </div>
+  </form>
+</div>
+<%- include('../layout-bottom') %>

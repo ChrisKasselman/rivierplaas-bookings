@@ -1,0 +1,66 @@
+<%- include('../layout-top', { title: 'Admin Panel', page: 'admin', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Admin panel</h1>
+  <a href="/export" class="btn btn-secondary">↓ Export CSV</a>
+</div>
+
+<div class="admin-grid">
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h2>Staff accounts</h2>
+      <a href="/admin/staff/new" class="btn btn-primary btn-sm">+ Add staff</a>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Venue</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% staff.forEach(s => { %>
+        <tr>
+          <td><strong><%= s.name %></strong></td>
+          <td class="muted"><%= s.email %></td>
+          <td><span class="badge <%= s.role==='manager'?'badge-warning':'badge-venue' %>"><%= s.role %></span></td>
+          <td><%= s.venue %></td>
+          <td class="actions-cell">
+            <a href="/admin/staff/<%= s.id %>/edit" class="btn btn-sm">Edit</a>
+            <% if(s.id !== user.id) { %>
+            <form method="POST" action="/admin/staff/<%= s.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this staff account?')">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="rooms-section">
+  <h2 class="section-title">Today's room overview</h2>
+  <div class="venues-row">
+    <div>
+      <h3 class="venue-label">Ommidraai</h3>
+      <div class="rooms-mini">
+        <% for(let i=1; i<=7; i++) { %>
+        <div class="room-mini <%= ommiMap[i] ? 'booked' : 'available' %>">
+          <div><%= i %></div>
+          <div class="room-mini-status"><%= ommiMap[i] ? 'Full' : 'Free' %></div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <div>
+      <h3 class="venue-label">Inniebos</h3>
+      <div class="rooms-mini">
+        <% for(let i=1; i<=5; i++) { %>
+        <div class="room-mini <%= innieMap[i] ? 'booked' : 'available' %>">
+          <div><%= i %></div>
+          <div class="room-mini-status"><%= innieMap[i] ? 'Full' : 'Free' %></div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../layout-bottom') %>

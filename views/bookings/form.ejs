@@ -1,0 +1,98 @@
+<%- include('../layout-top', { title: booking && booking.id ? 'Edit Booking' : 'New Booking', page: booking && booking.id ? 'bookings' : 'new', user }) %>
+<div class="page-header">
+  <h1 class="page-title"><%= booking && booking.id ? 'Edit booking' : 'New booking' %></h1>
+  <a href="/bookings" class="btn btn-ghost">← Back</a>
+</div>
+
+<% if(error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="form-card">
+  <form method="POST" action="/bookings/<%= booking && booking.id ? booking.id + '/edit' : 'new' %>">
+
+    <div class="form-section-title">Guest details</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>First name <span class="req">*</span></label>
+        <input type="text" name="firstname" value="<%= booking ? booking.firstname||'' : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Surname <span class="req">*</span></label>
+        <input type="text" name="surname" value="<%= booking ? booking.surname||'' : '' %>" required>
+      </div>
+      <div class="form-group full">
+        <label>Email address <span class="req">*</span></label>
+        <input type="email" name="email" value="<%= booking ? booking.email||'' : '' %>" required>
+      </div>
+      <div class="form-group full">
+        <label>Cell number <span class="req">*</span></label>
+        <input type="tel" name="cell" value="<%= booking ? booking.cell||'' : '' %>" required>
+      </div>
+    </div>
+
+    <div class="form-section-title">Venue &amp; dates</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Venue <span class="req">*</span></label>
+        <select name="venue" id="venue-select" onchange="updateRooms()" required>
+          <option value="">Select venue</option>
+          <option value="Ommidraai" <%= booking && booking.venue==='Ommidraai'?'selected':'' %>>Ommidraai (7 rooms)</option>
+          <option value="Inniebos" <%= booking && booking.venue==='Inniebos'?'selected':'' %>>Inniebos (5 rooms)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Room <span class="req">*</span></label>
+        <select name="room" id="room-select" required>
+          <option value="">Select venue first</option>
+          <% if(booking && booking.venue && booking.room) {
+            const max = booking.venue === 'Ommidraai' ? 7 : 5;
+            for(let i=1; i<=max; i++) { %>
+            <option value="<%= i %>" <%= booking.room == i ? 'selected' : '' %>>Room <%= i %></option>
+          <% }} %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Check-in date <span class="req">*</span></label>
+        <input type="date" name="checkin" value="<%= booking ? (booking.checkin ? new Date(booking.checkin).toISOString().split('T')[0] : '') : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Check-out date <span class="req">*</span></label>
+        <input type="date" name="checkout" value="<%= booking ? (booking.checkout ? new Date(booking.checkout).toISOString().split('T')[0] : '') : '' %>" required>
+      </div>
+    </div>
+
+    <div class="form-section-title">Payment status</div>
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="deposit_paid" value="1" <%= booking && booking.deposit_paid ? 'checked' : '' %>>
+        Deposit paid
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="fully_paid" value="1" <%= booking && booking.fully_paid ? 'checked' : '' %>>
+        Fully paid
+      </label>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+      <label>Notes</label>
+      <textarea name="notes" rows="3" placeholder="Special requests, notes…"><%= booking ? booking.notes||'' : '' %></textarea>
+    </div>
+
+    <div class="form-footer">
+      <a href="/bookings" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save booking</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function updateRooms() {
+  const venue = document.getElementById('venue-select').value;
+  const sel = document.getElementById('room-select');
+  const max = venue === 'Ommidraai' ? 7 : venue === 'Inniebos' ? 5 : 0;
+  if (!max) { sel.innerHTML = '<option value="">Select venue first</option>'; return; }
+  sel.innerHTML = Array.from({length: max}, (_, i) => `<option value="${i+1}">Room ${i+1}</option>`).join('');
+}
+</script>
+<%- include('../layout-bottom') %>

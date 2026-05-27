@@ -1,0 +1,62 @@
+<%- include('../layout-top', { title: 'Dashboard', page: 'dashboard', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <a href="/bookings/new" class="btn btn-primary">+ New booking</a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total bookings</div>
+    <div class="stat-value"><%= stats.total %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Upcoming</div>
+    <div class="stat-value blue"><%= stats.upcoming %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Fully paid</div>
+    <div class="stat-value green"><%= stats.paid %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Deposit only</div>
+    <div class="stat-value amber"><%= stats.deposit %></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Unpaid</div>
+    <div class="stat-value red"><%= stats.unpaid %></div>
+  </div>
+</div>
+
+<div class="quick-links">
+  <a href="/bookings" class="quick-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <div>
+      <div class="qc-title">View all bookings</div>
+      <div class="qc-sub">Search, filter and manage</div>
+    </div>
+  </a>
+  <a href="/rooms" class="quick-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14"/><path d="M3 21h18M9 21V12h6v9"/></svg>
+    <div>
+      <div class="qc-title">Room availability</div>
+      <div class="qc-sub">Check rooms by date</div>
+    </div>
+  </a>
+  <% if(user.role === 'manager') { %>
+  <a href="/admin" class="quick-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM4 20a8 8 0 0 1 16 0"/></svg>
+    <div>
+      <div class="qc-title">Admin panel</div>
+      <div class="qc-sub">Staff accounts &amp; reports</div>
+    </div>
+  </a>
+  <a href="/export" class="quick-card">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <div>
+      <div class="qc-title">Export to CSV</div>
+      <div class="qc-sub">Download all bookings</div>
+    </div>
+  </a>
+  <% } %>
+</div>
+<%- include('../layout-bottom') %>
