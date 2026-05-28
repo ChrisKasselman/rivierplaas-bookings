@@ -23,11 +23,15 @@
         </a>
         <a href="/bookings" class="nav-item <%= page==='bookings'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          Bookings
+          Room bookings
         </a>
         <a href="/bookings/new" class="nav-item <%= page==='new'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-          New booking
+          New room booking
+        </a>
+        <a href="/weddings" class="nav-item <%= page==='weddings'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c-4-4-8-7.5-8-11a8 8 0 0 1 16 0c0 3.5-4 7-8 11z"/><circle cx="12" cy="10" r="2"/></svg>
+          Wedding bookings
         </a>
         <a href="/rooms" class="nav-item <%= page==='rooms'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14"/><path d="M3 21h18M9 21V12h6v9"/></svg>
@@ -38,6 +42,10 @@
         <a href="/admin" class="nav-item <%= page==='admin'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM4 20a8 8 0 0 1 16 0"/></svg>
           Admin panel
+        </a>
+        <a href="/admin/audit" class="nav-item <%= page==='audit'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6M9 16h6M9 8h6M5 3h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+          Audit log
         </a>
         <a href="/export" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>

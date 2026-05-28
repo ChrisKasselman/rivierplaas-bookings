@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db');
+const { auditLog } = require('../middleware/audit');
 
 router.get('/login', (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
@@ -17,6 +18,7 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.render('auth/login', { error: 'Invalid email or password.' });
     req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role, venue: user.venue };
+    await auditLog(req, 'LOGIN', 'user', user.id, `${user.name} logged in`);
     res.redirect('/dashboard');
   } catch (err) {
     console.error(err);
@@ -24,7 +26,10 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', async (req, res) => {
+  if (req.session.user) {
+    await auditLog(req, 'LOGOUT', 'user', req.session.user.id, `${req.session.user.name} logged out`);
+  }
   req.session.destroy(() => res.redirect('/login'));
 });
 

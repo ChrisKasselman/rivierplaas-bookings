@@ -33,8 +33,8 @@ async function initDB() {
         surname VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL,
         cell VARCHAR(30) NOT NULL,
-        venue ENUM('Ommidraai','Inniebos') NOT NULL,
-        room INT NOT NULL,
+        venue ENUM('Ommidraai','Inniebos','Honeymoon Suite') NOT NULL,
+        room INT,
         checkin DATE NOT NULL,
         checkout DATE NOT NULL,
         deposit_paid TINYINT(1) DEFAULT 0,
@@ -44,6 +44,42 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS wedding_bookings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        firstname VARCHAR(100) NOT NULL,
+        surname VARCHAR(100) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+        cell VARCHAR(30) NOT NULL,
+        venue ENUM('Ommidraai Wedding Venue','Inniebos Wedding Venue') NOT NULL,
+        event_date DATE NOT NULL,
+        event_end_date DATE NOT NULL,
+        guests VARCHAR(20) NOT NULL,
+        deposit_paid TINYINT(1) DEFAULT 0,
+        fully_paid TINYINT(1) DEFAULT 0,
+        notes TEXT,
+        created_by INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS audit_log (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        user_name VARCHAR(100),
+        user_email VARCHAR(150),
+        action VARCHAR(100) NOT NULL,
+        entity_type VARCHAR(50),
+        entity_id INT,
+        detail TEXT,
+        ip_address VARCHAR(45),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 

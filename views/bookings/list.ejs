@@ -1,6 +1,6 @@
-<%- include('../layout-top', { title: 'Bookings', page: 'bookings', user }) %>
+<%- include('../layout-top', { title: 'Room Bookings', page: 'bookings', user }) %>
 <div class="page-header">
-  <h1 class="page-title">Bookings</h1>
+  <h1 class="page-title">Room bookings</h1>
   <a href="/bookings/new" class="btn btn-primary">+ New booking</a>
 </div>
 
@@ -10,6 +10,7 @@
     <option value="">All venues</option>
     <option value="Ommidraai" <%= venue==='Ommidraai'?'selected':'' %>>Ommidraai</option>
     <option value="Inniebos" <%= venue==='Inniebos'?'selected':'' %>>Inniebos</option>
+    <option value="Honeymoon Suite" <%= venue==='Honeymoon Suite'?'selected':'' %>>Honeymoon Suite</option>
   </select>
   <select name="payment" onchange="this.form.submit()">
     <option value="">All payments</option>

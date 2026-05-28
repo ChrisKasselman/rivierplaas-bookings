@@ -1,7 +1,10 @@
 <%- include('../layout-top', { title: 'Admin Panel', page: 'admin', user }) %>
 <div class="page-header">
   <h1 class="page-title">Admin panel</h1>
-  <a href="/export" class="btn btn-secondary">↓ Export CSV</a>
+  <div style="display:flex;gap:0.5rem">
+    <a href="/admin/audit" class="btn btn-secondary">📋 Audit log</a>
+    <a href="/export" class="btn btn-secondary">↓ Export CSV</a>
+  </div>
 </div>
 
 <div class="admin-grid">
@@ -37,29 +40,68 @@
 </div>
 
 <div class="rooms-section">
-  <h2 class="section-title">Today's room overview</h2>
+  <h2 class="section-title">Today's occupancy</h2>
   <div class="venues-row">
+
     <div>
-      <h3 class="venue-label">Ommidraai</h3>
+      <h3 class="venue-label">Ommidraai (Rooms 1–7)</h3>
       <div class="rooms-mini">
-        <% for(let i=1; i<=7; i++) { %>
+        <% [1,2,3,4,5,6,7].forEach(i => { %>
         <div class="room-mini <%= ommiMap[i] ? 'booked' : 'available' %>">
           <div><%= i %></div>
           <div class="room-mini-status"><%= ommiMap[i] ? 'Full' : 'Free' %></div>
         </div>
-        <% } %>
+        <% }) %>
       </div>
     </div>
+
     <div>
-      <h3 class="venue-label">Inniebos</h3>
+      <h3 class="venue-label">Inniebos (Rooms 10–14)</h3>
       <div class="rooms-mini">
-        <% for(let i=1; i<=5; i++) { %>
+        <% [10,11,12,13,14].forEach(i => { %>
         <div class="room-mini <%= innieMap[i] ? 'booked' : 'available' %>">
           <div><%= i %></div>
           <div class="room-mini-status"><%= innieMap[i] ? 'Full' : 'Free' %></div>
         </div>
-        <% } %>
+        <% }) %>
       </div>
+    </div>
+
+    <div>
+      <h3 class="venue-label">Honeymoon Suites (Rooms 8–9)</h3>
+      <div class="rooms-mini">
+        <% [8,9].forEach(i => { %>
+        <div class="room-mini <%= honeyMap[i] ? 'booked' : 'available' %>">
+          <div><%= i %></div>
+          <div class="room-mini-status"><%= honeyMap[i] ? 'Full' : 'Free' %></div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-title" style="margin-top:2rem">Today's wedding venues</h2>
+  <div class="venues-row">
+    <div>
+      <h3 class="venue-label">Ommidraai Wedding Venue</h3>
+      <% if(ommiWed.length === 0) { %>
+        <div class="room-mini available" style="width:auto;padding:0.5rem 1rem">Free today</div>
+      <% } else { ommiWed.forEach(w => { %>
+        <div class="room-mini booked" style="width:auto;padding:0.5rem 1rem">
+          <%= w.firstname %> <%= w.surname %> · <%= w.guests %> guests
+        </div>
+      <% }); } %>
+    </div>
+    <div>
+      <h3 class="venue-label">Inniebos Wedding Venue</h3>
+      <% if(innieWed.length === 0) { %>
+        <div class="room-mini available" style="width:auto;padding:0.5rem 1rem">Free today</div>
+      <% } else { innieWed.forEach(w => { %>
+        <div class="room-mini booked" style="width:auto;padding:0.5rem 1rem">
+          <%= w.firstname %> <%= w.surname %> · <%= w.guests %> guests
+        </div>
+      <% }); } %>
     </div>
   </div>
 </div>

@@ -6,14 +6,15 @@
 <form method="GET" action="/rooms" class="filter-bar">
   <input type="date" name="date" value="<%= date %>">
   <select name="venue" onchange="this.form.submit()">
-    <option value="Ommidraai" <%= venue==='Ommidraai'?'selected':'' %>>Ommidraai</option>
-    <option value="Inniebos" <%= venue==='Inniebos'?'selected':'' %>>Inniebos</option>
+    <option value="Ommidraai" <%= venue==='Ommidraai'?'selected':'' %>>Ommidraai (Rooms 1–7)</option>
+    <option value="Inniebos" <%= venue==='Inniebos'?'selected':'' %>>Inniebos (Rooms 10–14)</option>
+    <option value="Honeymoon Suite" <%= venue==='Honeymoon Suite'?'selected':'' %>>Honeymoon Suite (Rooms 8–9)</option>
   </select>
   <button type="submit" class="btn btn-secondary">Check</button>
 </form>
 
 <div class="rooms-grid">
-  <% for(let i = 1; i <= maxRooms; i++) {
+  <% rooms.forEach(function(i) {
     const guest = bookedMap[i];
   %>
   <div class="room-card <%= guest ? 'booked' : 'available' %>">
@@ -23,7 +24,7 @@
       <div class="room-guest"><%= guest %></div>
     <% } %>
   </div>
-  <% } %>
+  <% }); %>
 </div>
 
 <div class="rooms-legend">

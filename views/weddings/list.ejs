@@ -1,0 +1,75 @@
+<%- include('../layout-top', { title: 'Wedding Bookings', page: 'weddings', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Wedding bookings</h1>
+  <a href="/weddings/new" class="btn btn-primary">+ New wedding booking</a>
+</div>
+
+<form method="GET" action="/weddings" class="filter-bar">
+  <input type="text" name="search" placeholder="Search name, email, cell…" value="<%= search %>">
+  <select name="venue" onchange="this.form.submit()">
+    <option value="">All venues</option>
+    <option value="Ommidraai Wedding Venue" <%= venue==='Ommidraai Wedding Venue'?'selected':'' %>>Ommidraai Wedding Venue</option>
+    <option value="Inniebos Wedding Venue" <%= venue==='Inniebos Wedding Venue'?'selected':'' %>>Inniebos Wedding Venue</option>
+  </select>
+  <select name="payment" onchange="this.form.submit()">
+    <option value="">All payments</option>
+    <option value="fully_paid" <%= payment==='fully_paid'?'selected':'' %>>Fully paid</option>
+    <option value="deposit" <%= payment==='deposit'?'selected':'' %>>Deposit only</option>
+    <option value="unpaid" <%= payment==='unpaid'?'selected':'' %>>Unpaid</option>
+  </select>
+  <button type="submit" class="btn btn-secondary">Search</button>
+  <a href="/weddings" class="btn btn-ghost">Clear</a>
+</form>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Contact</th>
+        <th>Venue</th>
+        <th>Event date</th>
+        <th>End date</th>
+        <th>Guests</th>
+        <th>Payment</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(weddings.length === 0) { %>
+      <tr><td colspan="8" class="empty-row">No wedding bookings found.</td></tr>
+      <% } %>
+      <% weddings.forEach(w => { %>
+      <tr>
+        <td><strong><%= w.firstname %> <%= w.surname %></strong></td>
+        <td class="contact-cell">
+          <span><%= w.email %></span>
+          <span class="muted"><%= w.cell %></span>
+        </td>
+        <td><span class="badge badge-wedding"><%= w.venue %></span></td>
+        <td><%= new Date(w.event_date).toLocaleDateString('en-ZA') %></td>
+        <td><%= new Date(w.event_end_date).toLocaleDateString('en-ZA') %></td>
+        <td><span class="badge badge-guests"><%= w.guests %></span></td>
+        <td>
+          <% if(w.fully_paid) { %>
+            <span class="badge badge-success">Fully paid</span>
+          <% } else if(w.deposit_paid) { %>
+            <span class="badge badge-warning">Deposit</span>
+          <% } else { %>
+            <span class="badge badge-danger">Unpaid</span>
+          <% } %>
+        </td>
+        <td class="actions-cell">
+          <a href="/weddings/<%= w.id %>/edit" class="btn btn-sm">Edit</a>
+          <% if(user.role === 'manager') { %>
+          <form method="POST" action="/weddings/<%= w.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this wedding booking?')">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../layout-bottom') %>

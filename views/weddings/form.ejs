@@ -1,0 +1,86 @@
+<%- include('../layout-top', { title: wedding && wedding.id ? 'Edit Wedding Booking' : 'New Wedding Booking', page: 'weddings', user }) %>
+<div class="page-header">
+  <h1 class="page-title"><%= wedding && wedding.id ? 'Edit wedding booking' : 'New wedding booking' %></h1>
+  <a href="/weddings" class="btn btn-ghost">← Back</a>
+</div>
+
+<% if(error) { %>
+  <div class="alert alert-error"><%= error %></div>
+<% } %>
+
+<div class="form-card">
+  <form method="POST" action="/weddings/<%= wedding && wedding.id ? wedding.id + '/edit' : 'new' %>">
+
+    <div class="form-section-title">Client details</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>First name <span class="req">*</span></label>
+        <input type="text" name="firstname" value="<%= wedding ? wedding.firstname||'' : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Surname <span class="req">*</span></label>
+        <input type="text" name="surname" value="<%= wedding ? wedding.surname||'' : '' %>" required>
+      </div>
+      <div class="form-group full">
+        <label>Email address <span class="req">*</span></label>
+        <input type="email" name="email" value="<%= wedding ? wedding.email||'' : '' %>" required>
+      </div>
+      <div class="form-group full">
+        <label>Cell number <span class="req">*</span></label>
+        <input type="tel" name="cell" value="<%= wedding ? wedding.cell||'' : '' %>" required>
+      </div>
+    </div>
+
+    <div class="form-section-title">Venue &amp; dates</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Wedding venue <span class="req">*</span></label>
+        <select name="venue" required>
+          <option value="">Select venue</option>
+          <option value="Ommidraai Wedding Venue" <%= wedding && wedding.venue==='Ommidraai Wedding Venue'?'selected':'' %>>Ommidraai Wedding Venue</option>
+          <option value="Inniebos Wedding Venue" <%= wedding && wedding.venue==='Inniebos Wedding Venue'?'selected':'' %>>Inniebos Wedding Venue</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Event date <span class="req">*</span></label>
+        <input type="date" name="event_date" value="<%= wedding ? (wedding.event_date ? new Date(wedding.event_date).toISOString().split('T')[0] : '') : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>End date <span class="req">*</span></label>
+        <input type="date" name="event_end_date" value="<%= wedding ? (wedding.event_end_date ? new Date(wedding.event_end_date).toISOString().split('T')[0] : '') : '' %>" required>
+      </div>
+      <div class="form-group full">
+        <label>Number of guests <span class="req">*</span></label>
+        <select name="guests" required>
+          <option value="">Select guest count</option>
+          <option value="1–50" <%= wedding && wedding.guests==='1–50'?'selected':'' %>>1 – 50 guests</option>
+          <option value="50–100" <%= wedding && wedding.guests==='50–100'?'selected':'' %>>50 – 100 guests</option>
+          <option value="100+" <%= wedding && wedding.guests==='100+'?'selected':'' %>>100+ guests</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section-title">Payment status</div>
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" name="deposit_paid" value="1" <%= wedding && wedding.deposit_paid ? 'checked' : '' %>>
+        Deposit paid
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="fully_paid" value="1" <%= wedding && wedding.fully_paid ? 'checked' : '' %>>
+        Fully paid
+      </label>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+      <label>Notes</label>
+      <textarea name="notes" rows="3" placeholder="Special requests, notes…"><%= wedding ? wedding.notes||'' : '' %></textarea>
+    </div>
+
+    <div class="form-footer">
+      <a href="/weddings" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save booking</button>
+    </div>
+  </form>
+</div>
+<%- include('../layout-bottom') %>

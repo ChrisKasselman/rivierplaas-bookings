@@ -1,0 +1,51 @@
+<%- include('../layout-top', { title: 'Audit Log', page: 'audit', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Audit log</h1>
+  <a href="/admin" class="btn btn-ghost">← Admin panel</a>
+</div>
+
+<div class="audit-meta">Showing <%= logs.length %> of <%= total %> entries</div>
+
+<div class="table-wrap">
+  <table class="data-table audit-table">
+    <thead>
+      <tr>
+        <th>Date &amp; time</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Detail</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(logs.length === 0) { %>
+      <tr><td colspan="4" class="empty-row">No audit entries found.</td></tr>
+      <% } %>
+      <% logs.forEach(l => {
+        const actionClass = l.action.startsWith('DELETE') ? 'action-delete' :
+                            l.action.startsWith('CREATE') ? 'action-create' :
+                            l.action.startsWith('EDIT')   ? 'action-edit' :
+                            l.action === 'LOGIN'          ? 'action-login' :
+                            l.action === 'LOGOUT'         ? 'action-logout' : '';
+      %>
+      <tr>
+        <td class="muted audit-time"><%= new Date(l.created_at).toLocaleString('en-ZA') %></td>
+        <td>
+          <strong><%= l.user_name %></strong>
+          <% if(l.user_email) { %><div class="muted" style="font-size:0.78rem"><%= l.user_email %></div><% } %>
+        </td>
+        <td><span class="badge audit-badge <%= actionClass %>"><%= l.action.replace(/_/g,' ') %></span></td>
+        <td class="audit-detail"><%= l.detail || '—' %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<% if(pages > 1) { %>
+<div class="pagination">
+  <% for(let p = 1; p <= pages; p++) { %>
+    <a href="/admin/audit?page=<%= p %>" class="page-btn <%= p === page ? 'active' : '' %>"><%= p %></a>
+  <% } %>
+</div>
+<% } %>
+<%- include('../layout-bottom') %>

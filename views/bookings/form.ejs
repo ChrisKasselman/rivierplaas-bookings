@@ -31,25 +31,30 @@
       </div>
     </div>
 
-    <div class="form-section-title">Venue &amp; dates</div>
+    <div class="form-section-title">Venue &amp; room</div>
     <div class="form-grid">
       <div class="form-group">
         <label>Venue <span class="req">*</span></label>
         <select name="venue" id="venue-select" onchange="updateRooms()" required>
           <option value="">Select venue</option>
-          <option value="Ommidraai" <%= booking && booking.venue==='Ommidraai'?'selected':'' %>>Ommidraai (7 rooms)</option>
-          <option value="Inniebos" <%= booking && booking.venue==='Inniebos'?'selected':'' %>>Inniebos (5 rooms)</option>
+          <option value="Ommidraai" <%= booking && booking.venue==='Ommidraai'?'selected':'' %>>Ommidraai (Rooms 1–7)</option>
+          <option value="Inniebos" <%= booking && booking.venue==='Inniebos'?'selected':'' %>>Inniebos (Rooms 10–14)</option>
+          <option value="Honeymoon Suite" <%= booking && booking.venue==='Honeymoon Suite'?'selected':'' %>>Honeymoon Suite (Rooms 8–9)</option>
         </select>
       </div>
       <div class="form-group">
         <label>Room <span class="req">*</span></label>
         <select name="room" id="room-select" required>
-          <option value="">Select venue first</option>
           <% if(booking && booking.venue && booking.room) {
-            const max = booking.venue === 'Ommidraai' ? 7 : 5;
-            for(let i=1; i<=max; i++) { %>
-            <option value="<%= i %>" <%= booking.room == i ? 'selected' : '' %>>Room <%= i %></option>
-          <% }} %>
+            let roomList = [];
+            if(booking.venue === 'Ommidraai') roomList = [1,2,3,4,5,6,7];
+            else if(booking.venue === 'Inniebos') roomList = [10,11,12,13,14];
+            else if(booking.venue === 'Honeymoon Suite') roomList = [8,9];
+            roomList.forEach(i => { %>
+              <option value="<%= i %>" <%= booking.room == i ? 'selected' : '' %>>Room <%= i %></option>
+          <% }); } else { %>
+            <option value="">Select venue first</option>
+          <% } %>
         </select>
       </div>
       <div class="form-group">
@@ -87,12 +92,17 @@
 </div>
 
 <script>
+const roomMap = {
+  'Ommidraai': [1,2,3,4,5,6,7],
+  'Inniebos': [10,11,12,13,14],
+  'Honeymoon Suite': [8,9]
+};
 function updateRooms() {
   const venue = document.getElementById('venue-select').value;
   const sel = document.getElementById('room-select');
-  const max = venue === 'Ommidraai' ? 7 : venue === 'Inniebos' ? 5 : 0;
-  if (!max) { sel.innerHTML = '<option value="">Select venue first</option>'; return; }
-  sel.innerHTML = Array.from({length: max}, (_, i) => `<option value="${i+1}">Room ${i+1}</option>`).join('');
+  const rooms = roomMap[venue] || [];
+  if (!rooms.length) { sel.innerHTML = '<option value="">Select venue first</option>'; return; }
+  sel.innerHTML = rooms.map(r => `<option value="${r}">Room ${r}</option>`).join('');
 }
 </script>
 <%- include('../layout-bottom') %>
