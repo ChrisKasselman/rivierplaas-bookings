@@ -206,3 +206,57 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .page-btn { padding:0.35rem 0.75rem; border-radius:6px; border:1px solid #e5e7eb; font-size:0.85rem; color:#374151; text-decoration:none; }
 .page-btn.active { background:#1a1a2e; color:#fff; border-color:#1a1a2e; }
 .page-btn:hover:not(.active) { background:#f3f4f6; }
+
+/* ── Logo & watermark ───────────────────────────────────── */
+.login-logo-img {
+  display: block;
+  width: 220px;
+  margin: 0 auto 0.5rem;
+  object-fit: contain;
+}
+
+.login-bg-logo {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+.login-bg-logo img {
+  width: 520px;
+  opacity: 0.06;
+  filter: grayscale(100%);
+}
+.login-wrap { position: relative; z-index: 1; }
+
+.sidebar-logo { padding: 1rem 1rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
+.sidebar-logo-img { width: 100%; max-width: 150px; display: block; margin: 0 auto; filter: brightness(0) invert(1); opacity: 0.85; }
+
+.main-with-bg { position: relative; }
+.main-bg-logo {
+  position: fixed;
+  bottom: -40px;
+  right: -40px;
+  pointer-events: none;
+  z-index: 0;
+}
+.main-bg-logo img {
+  width: 420px;
+  opacity: 0.04;
+  filter: grayscale(100%);
+}
+.main-content > *:not(.main-bg-logo) { position: relative; z-index: 1; }
+
+/* ── Clickable stat cards ───────────────────────────────── */
+.stat-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.stat-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+.stat-link:hover .stat-value { opacity: 0.85; }

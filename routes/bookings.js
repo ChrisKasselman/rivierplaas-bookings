@@ -7,21 +7,59 @@ const { stringify } = require('csv-stringify/sync');
 
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
-    const [total] = await pool.query('SELECT COUNT(*) as c FROM bookings');
-    const [paid] = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE fully_paid=1');
-    const [deposit] = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=1 AND fully_paid=0');
-    const [unpaid] = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=0 AND fully_paid=0');
+    const [total]    = await pool.query('SELECT COUNT(*) as c FROM bookings');
+    const [paid]     = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE fully_paid=1');
+    const [deposit]  = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=1 AND fully_paid=0');
+    const [unpaid]   = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=0 AND fully_paid=0');
     const [upcoming] = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE checkin >= CURDATE()');
-    const [wTotal] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings');
-    const [wUpcoming] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE event_date >= CURDATE()');
+    const [wTotal]   = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings');
+    const [wUpcoming]= await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE event_date >= CURDATE()');
+    const [wPaid]    = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE fully_paid=1');
+    const [wDeposit] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=1 AND fully_paid=0');
+    const [wUnpaid]  = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0');
     res.render('dashboard', {
       user: req.session.user,
-      stats: { total: total[0].c, paid: paid[0].c, deposit: deposit[0].c, unpaid: unpaid[0].c, upcoming: upcoming[0].c, wTotal: wTotal[0].c, wUpcoming: wUpcoming[0].c }
+      stats: {
+        total: total[0].c, paid: paid[0].c, deposit: deposit[0].c, unpaid: unpaid[0].c, upcoming: upcoming[0].c,
+        wTotal: wTotal[0].c, wUpcoming: wUpcoming[0].c, wPaid: wPaid[0].c, wDeposit: wDeposit[0].c, wUnpaid: wUnpaid[0].c
+      }
     });
   } catch (err) {
     console.error(err);
-    res.render('dashboard', { user: req.session.user, stats: { total:0, paid:0, deposit:0, unpaid:0, upcoming:0, wTotal:0, wUpcoming:0 } });
+    res.render('dashboard', { user: req.session.user, stats: { total:0, paid:0, deposit:0, unpaid:0, upcoming:0, wTotal:0, wUpcoming:0, wPaid:0, wDeposit:0, wUnpaid:0 } });
   }
+});
+
+// ─── Dashboard drill-down ────────────────────────────────────────────────────
+
+const dashboardRoomFilters = {
+  all:        { sql: 'SELECT * FROM bookings ORDER BY checkin DESC',                                              title: 'All room bookings' },
+  upcoming:   { sql: 'SELECT * FROM bookings WHERE checkin >= CURDATE() ORDER BY checkin ASC',                   title: 'Upcoming stays' },
+  fully_paid: { sql: 'SELECT * FROM bookings WHERE fully_paid=1 ORDER BY checkin DESC',                          title: 'Fully paid bookings' },
+  deposit:    { sql: 'SELECT * FROM bookings WHERE deposit_paid=1 AND fully_paid=0 ORDER BY checkin DESC',        title: 'Deposit only bookings' },
+  unpaid:     { sql: 'SELECT * FROM bookings WHERE deposit_paid=0 AND fully_paid=0 ORDER BY checkin DESC',        title: 'Unpaid bookings' },
+};
+
+const dashboardWeddingFilters = {
+  all:        { sql: 'SELECT * FROM wedding_bookings ORDER BY event_date DESC',                                          title: 'All wedding bookings' },
+  upcoming:   { sql: 'SELECT * FROM wedding_bookings WHERE event_date >= CURDATE() ORDER BY event_date ASC',             title: 'Upcoming weddings' },
+  fully_paid: { sql: 'SELECT * FROM wedding_bookings WHERE fully_paid=1 ORDER BY event_date DESC',                       title: 'Fully paid weddings' },
+  deposit:    { sql: 'SELECT * FROM wedding_bookings WHERE deposit_paid=1 AND fully_paid=0 ORDER BY event_date DESC',     title: 'Deposit only weddings' },
+  unpaid:     { sql: 'SELECT * FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0 ORDER BY event_date DESC',     title: 'Unpaid weddings' },
+};
+
+router.get('/dashboard/rooms/:filter', requireLogin, async (req, res) => {
+  const filter = dashboardRoomFilters[req.params.filter];
+  if (!filter) return res.redirect('/dashboard');
+  const [rows] = await pool.query(filter.sql);
+  res.render('dashboard/detail', { user: req.session.user, title: filter.title, rows, type: 'rooms' });
+});
+
+router.get('/dashboard/weddings/:filter', requireLogin, async (req, res) => {
+  const filter = dashboardWeddingFilters[req.params.filter];
+  if (!filter) return res.redirect('/dashboard');
+  const [rows] = await pool.query(filter.sql);
+  res.render('dashboard/detail', { user: req.session.user, title: filter.title, rows, type: 'weddings' });
 });
 
 // ─── Room Bookings ───────────────────────────────────────────────────────────
