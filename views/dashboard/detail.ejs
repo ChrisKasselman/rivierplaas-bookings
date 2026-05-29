@@ -35,8 +35,12 @@
         <td><%= new Date(b.checkin).toLocaleDateString('en-ZA') %></td>
         <td><%= new Date(b.checkout).toLocaleDateString('en-ZA') %></td>
         <td>
-          <% if(b.fully_paid) { %>
+          <% if(b.cancelled) { %>
+            <span class="badge badge-cancelled">Cancelled</span>
+          <% } else if(b.fully_paid) { %>
             <span class="badge badge-success">Fully paid</span>
+          <% } else if(b.no_payment) { %>
+            <span class="badge badge-nopayment">No payment</span>
           <% } else if(b.deposit_paid) { %>
             <span class="badge badge-warning">Deposit</span>
           <% } else { %>
@@ -85,8 +89,12 @@
         <td><%= new Date(w.event_end_date).toLocaleDateString('en-ZA') %></td>
         <td><span class="badge badge-guests"><%= w.guests %></span></td>
         <td>
-          <% if(w.fully_paid) { %>
+          <% if(w.cancelled) { %>
+            <span class="badge badge-cancelled">Cancelled</span>
+          <% } else if(w.fully_paid) { %>
             <span class="badge badge-success">Fully paid</span>
+          <% } else if(w.no_payment) { %>
+            <span class="badge badge-nopayment">No payment</span>
           <% } else if(w.deposit_paid) { %>
             <span class="badge badge-warning">Deposit</span>
           <% } else { %>

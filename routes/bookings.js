@@ -7,21 +7,27 @@ const { stringify } = require('csv-stringify/sync');
 
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
-    const [total]    = await pool.query('SELECT COUNT(*) as c FROM bookings');
-    const [paid]     = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE fully_paid=1');
-    const [deposit]  = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=1 AND fully_paid=0');
-    const [unpaid]   = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=0 AND fully_paid=0');
-    const [upcoming] = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE checkin >= CURDATE()');
-    const [wTotal]   = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings');
-    const [wUpcoming]= await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE event_date >= CURDATE()');
-    const [wPaid]    = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE fully_paid=1');
-    const [wDeposit] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=1 AND fully_paid=0');
-    const [wUnpaid]  = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0');
+    const [total]      = await pool.query('SELECT COUNT(*) as c FROM bookings');
+    const [paid]       = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE fully_paid=1');
+    const [deposit]    = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=1 AND fully_paid=0');
+    const [unpaid]     = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE deposit_paid=0 AND fully_paid=0 AND no_payment=0 AND cancelled=0');
+    const [nopayment]  = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE no_payment=1');
+    const [cancelled]  = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE cancelled=1');
+    const [upcoming]   = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE checkin >= CURDATE() AND cancelled=0');
+    const [wTotal]     = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings');
+    const [wUpcoming]  = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE event_date >= CURDATE() AND cancelled=0');
+    const [wPaid]      = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE fully_paid=1');
+    const [wDeposit]   = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=1 AND fully_paid=0');
+    const [wUnpaid]    = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0 AND no_payment=0 AND cancelled=0');
+    const [wNopayment] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE no_payment=1');
+    const [wCancelled] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE cancelled=1');
     res.render('dashboard', {
       user: req.session.user,
       stats: {
-        total: total[0].c, paid: paid[0].c, deposit: deposit[0].c, unpaid: unpaid[0].c, upcoming: upcoming[0].c,
-        wTotal: wTotal[0].c, wUpcoming: wUpcoming[0].c, wPaid: wPaid[0].c, wDeposit: wDeposit[0].c, wUnpaid: wUnpaid[0].c
+        total: total[0].c, paid: paid[0].c, deposit: deposit[0].c, unpaid: unpaid[0].c,
+        nopayment: nopayment[0].c, cancelled: cancelled[0].c, upcoming: upcoming[0].c,
+        wTotal: wTotal[0].c, wUpcoming: wUpcoming[0].c, wPaid: wPaid[0].c, wDeposit: wDeposit[0].c,
+        wUnpaid: wUnpaid[0].c, wNopayment: wNopayment[0].c, wCancelled: wCancelled[0].c
       }
     });
   } catch (err) {
@@ -33,19 +39,23 @@ router.get('/dashboard', requireLogin, async (req, res) => {
 // ─── Dashboard drill-down ────────────────────────────────────────────────────
 
 const dashboardRoomFilters = {
-  all:        { sql: 'SELECT * FROM bookings ORDER BY checkin DESC',                                              title: 'All room bookings' },
-  upcoming:   { sql: 'SELECT * FROM bookings WHERE checkin >= CURDATE() ORDER BY checkin ASC',                   title: 'Upcoming stays' },
-  fully_paid: { sql: 'SELECT * FROM bookings WHERE fully_paid=1 ORDER BY checkin DESC',                          title: 'Fully paid bookings' },
-  deposit:    { sql: 'SELECT * FROM bookings WHERE deposit_paid=1 AND fully_paid=0 ORDER BY checkin DESC',        title: 'Deposit only bookings' },
-  unpaid:     { sql: 'SELECT * FROM bookings WHERE deposit_paid=0 AND fully_paid=0 ORDER BY checkin DESC',        title: 'Unpaid bookings' },
+  all:        { sql: 'SELECT * FROM bookings ORDER BY checkin DESC',                                                                    title: 'All room bookings' },
+  upcoming:   { sql: 'SELECT * FROM bookings WHERE checkin >= CURDATE() AND cancelled=0 ORDER BY checkin ASC',                          title: 'Upcoming stays' },
+  fully_paid: { sql: 'SELECT * FROM bookings WHERE fully_paid=1 ORDER BY checkin DESC',                                                title: 'Fully paid bookings' },
+  deposit:    { sql: 'SELECT * FROM bookings WHERE deposit_paid=1 AND fully_paid=0 ORDER BY checkin DESC',                              title: 'Deposit only bookings' },
+  unpaid:     { sql: 'SELECT * FROM bookings WHERE deposit_paid=0 AND fully_paid=0 AND no_payment=0 AND cancelled=0 ORDER BY checkin DESC', title: 'Unpaid bookings' },
+  no_payment: { sql: 'SELECT * FROM bookings WHERE no_payment=1 ORDER BY checkin DESC',                                                title: 'No payment (complimentary)' },
+  cancelled:  { sql: 'SELECT * FROM bookings WHERE cancelled=1 ORDER BY checkin DESC',                                                 title: 'Cancelled bookings' },
 };
 
 const dashboardWeddingFilters = {
-  all:        { sql: 'SELECT * FROM wedding_bookings ORDER BY event_date DESC',                                          title: 'All wedding bookings' },
-  upcoming:   { sql: 'SELECT * FROM wedding_bookings WHERE event_date >= CURDATE() ORDER BY event_date ASC',             title: 'Upcoming weddings' },
-  fully_paid: { sql: 'SELECT * FROM wedding_bookings WHERE fully_paid=1 ORDER BY event_date DESC',                       title: 'Fully paid weddings' },
-  deposit:    { sql: 'SELECT * FROM wedding_bookings WHERE deposit_paid=1 AND fully_paid=0 ORDER BY event_date DESC',     title: 'Deposit only weddings' },
-  unpaid:     { sql: 'SELECT * FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0 ORDER BY event_date DESC',     title: 'Unpaid weddings' },
+  all:        { sql: 'SELECT * FROM wedding_bookings ORDER BY event_date DESC',                                                                          title: 'All wedding bookings' },
+  upcoming:   { sql: 'SELECT * FROM wedding_bookings WHERE event_date >= CURDATE() AND cancelled=0 ORDER BY event_date ASC',                             title: 'Upcoming weddings' },
+  fully_paid: { sql: 'SELECT * FROM wedding_bookings WHERE fully_paid=1 ORDER BY event_date DESC',                                                      title: 'Fully paid weddings' },
+  deposit:    { sql: 'SELECT * FROM wedding_bookings WHERE deposit_paid=1 AND fully_paid=0 ORDER BY event_date DESC',                                    title: 'Deposit only weddings' },
+  unpaid:     { sql: 'SELECT * FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0 AND no_payment=0 AND cancelled=0 ORDER BY event_date DESC',   title: 'Unpaid weddings' },
+  no_payment: { sql: 'SELECT * FROM wedding_bookings WHERE no_payment=1 ORDER BY event_date DESC',                                                      title: 'No payment (complimentary) weddings' },
+  cancelled:  { sql: 'SELECT * FROM wedding_bookings WHERE cancelled=1 ORDER BY event_date DESC',                                                       title: 'Cancelled weddings' },
 };
 
 router.get('/dashboard/rooms/:filter', requireLogin, async (req, res) => {
@@ -71,6 +81,8 @@ router.get('/bookings', requireLogin, async (req, res) => {
   if (search) { sql += ' AND (firstname LIKE ? OR surname LIKE ? OR email LIKE ? OR cell LIKE ?)'; const s = `%${search}%`; params.push(s,s,s,s); }
   if (venue) { sql += ' AND venue = ?'; params.push(venue); }
   if (payment === 'fully_paid') { sql += ' AND fully_paid = 1'; }
+  else if (payment === 'no_payment') { sql += ' AND no_payment = 1'; }
+  else if (payment === 'cancelled') { sql += ' AND cancelled = 1'; }
   else if (payment === 'deposit') { sql += ' AND deposit_paid = 1 AND fully_paid = 0'; }
   else if (payment === 'unpaid') { sql += ' AND deposit_paid = 0 AND fully_paid = 0'; }
   sql += ' ORDER BY checkin DESC';
@@ -83,7 +95,7 @@ router.get('/bookings/new', requireLogin, (req, res) => {
 });
 
 router.post('/bookings/new', requireLogin, async (req, res) => {
-  const { firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid, fully_paid, notes } = req.body;
+  const { firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid, fully_paid, no_payment, cancelled, notes } = req.body;
   if (!firstname || !surname || !email || !cell || !venue || !room || !checkin || !checkout) {
     return res.render('bookings/form', { user: req.session.user, booking: req.body, error: 'Please fill in all required fields.' });
   }
@@ -92,8 +104,8 @@ router.post('/bookings/new', requireLogin, async (req, res) => {
   }
   try {
     const [result] = await pool.query(
-      'INSERT INTO bookings (firstname,surname,email,cell,venue,room,checkin,checkout,deposit_paid,fully_paid,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-      [firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid?1:0, fully_paid?1:0, notes||'', req.session.user.id]
+      'INSERT INTO bookings (firstname,surname,email,cell,venue,room,checkin,checkout,deposit_paid,fully_paid,no_payment,cancelled,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      [firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid?1:0, fully_paid?1:0, no_payment?1:0, cancelled?1:0, notes||'', req.session.user.id]
     );
     await auditLog(req, 'CREATE_BOOKING', 'booking', result.insertId, `Created booking for ${firstname} ${surname} — ${venue} Room ${room} (${checkin} to ${checkout})`);
     res.redirect('/bookings');
@@ -110,13 +122,13 @@ router.get('/bookings/:id/edit', requireLogin, async (req, res) => {
 });
 
 router.post('/bookings/:id/edit', requireLogin, async (req, res) => {
-  const { firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid, fully_paid, notes } = req.body;
+  const { firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid, fully_paid, no_payment, cancelled, notes } = req.body;
   if (!firstname || !surname || !email || !cell || !venue || !room || !checkin || !checkout) {
     return res.render('bookings/form', { user: req.session.user, booking: { ...req.body, id: req.params.id }, error: 'Please fill in all required fields.' });
   }
   await pool.query(
-    'UPDATE bookings SET firstname=?,surname=?,email=?,cell=?,venue=?,room=?,checkin=?,checkout=?,deposit_paid=?,fully_paid=?,notes=? WHERE id=?',
-    [firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid?1:0, fully_paid?1:0, notes||'', req.params.id]
+    'UPDATE bookings SET firstname=?,surname=?,email=?,cell=?,venue=?,room=?,checkin=?,checkout=?,deposit_paid=?,fully_paid=?,no_payment=?,cancelled=?,notes=? WHERE id=?',
+    [firstname, surname, email, cell, venue, room, checkin, checkout, deposit_paid?1:0, fully_paid?1:0, no_payment?1:0, cancelled?1:0, notes||'', req.params.id]
   );
   await auditLog(req, 'EDIT_BOOKING', 'booking', req.params.id, `Edited booking for ${firstname} ${surname} — ${venue} Room ${room}`);
   res.redirect('/bookings');
@@ -141,6 +153,8 @@ router.get('/weddings', requireLogin, async (req, res) => {
   if (search) { sql += ' AND (firstname LIKE ? OR surname LIKE ? OR email LIKE ? OR cell LIKE ?)'; const s = `%${search}%`; params.push(s,s,s,s); }
   if (venue) { sql += ' AND venue = ?'; params.push(venue); }
   if (payment === 'fully_paid') { sql += ' AND fully_paid = 1'; }
+  else if (payment === 'no_payment') { sql += ' AND no_payment = 1'; }
+  else if (payment === 'cancelled') { sql += ' AND cancelled = 1'; }
   else if (payment === 'deposit') { sql += ' AND deposit_paid = 1 AND fully_paid = 0'; }
   else if (payment === 'unpaid') { sql += ' AND deposit_paid = 0 AND fully_paid = 0'; }
   sql += ' ORDER BY event_date DESC';
@@ -153,7 +167,7 @@ router.get('/weddings/new', requireLogin, (req, res) => {
 });
 
 router.post('/weddings/new', requireLogin, async (req, res) => {
-  const { firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid, fully_paid, notes } = req.body;
+  const { firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid, fully_paid, no_payment, cancelled, notes } = req.body;
   if (!firstname || !surname || !email || !cell || !venue || !event_date || !event_end_date || !guests) {
     return res.render('weddings/form', { user: req.session.user, wedding: req.body, error: 'Please fill in all required fields.' });
   }
@@ -162,8 +176,8 @@ router.post('/weddings/new', requireLogin, async (req, res) => {
   }
   try {
     const [result] = await pool.query(
-      'INSERT INTO wedding_bookings (firstname,surname,email,cell,venue,event_date,event_end_date,guests,deposit_paid,fully_paid,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-      [firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid?1:0, fully_paid?1:0, notes||'', req.session.user.id]
+      'INSERT INTO wedding_bookings (firstname,surname,email,cell,venue,event_date,event_end_date,guests,deposit_paid,fully_paid,no_payment,cancelled,notes,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      [firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid?1:0, fully_paid?1:0, no_payment?1:0, cancelled?1:0, notes||'', req.session.user.id]
     );
     await auditLog(req, 'CREATE_WEDDING', 'wedding_booking', result.insertId, `Created wedding booking for ${firstname} ${surname} — ${venue} on ${event_date}`);
     res.redirect('/weddings');
@@ -180,13 +194,13 @@ router.get('/weddings/:id/edit', requireLogin, async (req, res) => {
 });
 
 router.post('/weddings/:id/edit', requireLogin, async (req, res) => {
-  const { firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid, fully_paid, notes } = req.body;
+  const { firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid, fully_paid, no_payment, cancelled, notes } = req.body;
   if (!firstname || !surname || !email || !cell || !venue || !event_date || !event_end_date || !guests) {
     return res.render('weddings/form', { user: req.session.user, wedding: { ...req.body, id: req.params.id }, error: 'Please fill in all required fields.' });
   }
   await pool.query(
-    'UPDATE wedding_bookings SET firstname=?,surname=?,email=?,cell=?,venue=?,event_date=?,event_end_date=?,guests=?,deposit_paid=?,fully_paid=?,notes=? WHERE id=?',
-    [firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid?1:0, fully_paid?1:0, notes||'', req.params.id]
+    'UPDATE wedding_bookings SET firstname=?,surname=?,email=?,cell=?,venue=?,event_date=?,event_end_date=?,guests=?,deposit_paid=?,fully_paid=?,no_payment=?,cancelled=?,notes=? WHERE id=?',
+    [firstname, surname, email, cell, venue, event_date, event_end_date, guests, deposit_paid?1:0, fully_paid?1:0, no_payment?1:0, cancelled?1:0, notes||'', req.params.id]
   );
   await auditLog(req, 'EDIT_WEDDING', 'wedding_booking', req.params.id, `Edited wedding booking for ${firstname} ${surname} — ${venue}`);
   res.redirect('/weddings');

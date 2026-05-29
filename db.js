@@ -39,6 +39,8 @@ async function initDB() {
         checkout DATE NOT NULL,
         deposit_paid TINYINT(1) DEFAULT 0,
         fully_paid TINYINT(1) DEFAULT 0,
+        no_payment TINYINT(1) DEFAULT 0,
+        cancelled TINYINT(1) DEFAULT 0,
         notes TEXT,
         created_by INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -46,6 +48,10 @@ async function initDB() {
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
     `);
+
+    // Add columns to existing tables if they don't exist yet
+    await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
+    await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS wedding_bookings (
@@ -60,6 +66,8 @@ async function initDB() {
         guests VARCHAR(20) NOT NULL,
         deposit_paid TINYINT(1) DEFAULT 0,
         fully_paid TINYINT(1) DEFAULT 0,
+        no_payment TINYINT(1) DEFAULT 0,
+        cancelled TINYINT(1) DEFAULT 0,
         notes TEXT,
         created_by INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -67,6 +75,10 @@ async function initDB() {
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
     `);
+
+    // Add columns to existing wedding_bookings table if they don't exist yet
+    await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
+    await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS audit_log (

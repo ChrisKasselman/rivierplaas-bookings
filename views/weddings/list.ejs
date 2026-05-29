@@ -16,6 +16,8 @@
     <option value="fully_paid" <%= payment==='fully_paid'?'selected':'' %>>Fully paid</option>
     <option value="deposit" <%= payment==='deposit'?'selected':'' %>>Deposit only</option>
     <option value="unpaid" <%= payment==='unpaid'?'selected':'' %>>Unpaid</option>
+    <option value="no_payment" <%= payment==='no_payment'?'selected':'' %>>No payment</option>
+    <option value="cancelled" <%= payment==='cancelled'?'selected':'' %>>Cancelled</option>
   </select>
   <button type="submit" class="btn btn-secondary">Search</button>
   <a href="/weddings" class="btn btn-ghost">Clear</a>
@@ -40,7 +42,7 @@
       <tr><td colspan="8" class="empty-row">No wedding bookings found.</td></tr>
       <% } %>
       <% weddings.forEach(w => { %>
-      <tr>
+      <tr class="<%= w.cancelled ? 'row-cancelled' : '' %>">
         <td><strong><%= w.firstname %> <%= w.surname %></strong></td>
         <td class="contact-cell">
           <span><%= w.email %></span>
@@ -51,8 +53,12 @@
         <td><%= new Date(w.event_end_date).toLocaleDateString('en-ZA') %></td>
         <td><span class="badge badge-guests"><%= w.guests %></span></td>
         <td>
-          <% if(w.fully_paid) { %>
+          <% if(w.cancelled) { %>
+            <span class="badge badge-cancelled">Cancelled</span>
+          <% } else if(w.fully_paid) { %>
             <span class="badge badge-success">Fully paid</span>
+          <% } else if(w.no_payment) { %>
+            <span class="badge badge-nopayment">No payment</span>
           <% } else if(w.deposit_paid) { %>
             <span class="badge badge-warning">Deposit</span>
           <% } else { %>

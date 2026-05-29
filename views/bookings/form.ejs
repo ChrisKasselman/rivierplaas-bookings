@@ -77,6 +77,14 @@
         <input type="checkbox" name="fully_paid" value="1" <%= booking && booking.fully_paid ? 'checked' : '' %>>
         Fully paid
       </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="no_payment" value="1" <%= booking && booking.no_payment ? 'checked' : '' %>>
+        No payment (complimentary)
+      </label>
+      <label class="checkbox-label" style="color:#dc2626">
+        <input type="checkbox" name="cancelled" value="1" <%= booking && booking.cancelled ? 'checked' : '' %>>
+        Cancelled
+      </label>
     </div>
 
     <div class="form-group" style="margin-top:1rem">
