@@ -11,6 +11,22 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
+async function safeAddColumn(conn, table, column, definition) {
+  try {
+    const [rows] = await conn.query(
+      `SELECT COUNT(*) as c FROM information_schema.COLUMNS 
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+      [table, column]
+    );
+    if (rows[0].c === 0) {
+      await conn.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+      console.log(`Added column ${table}.${column}`);
+    }
+  } catch (err) {
+    console.error(`Could not add column ${table}.${column}:`, err.message);
+  }
+}
+
 async function initDB() {
   const conn = await pool.getConnection();
   try {
@@ -49,10 +65,6 @@ async function initDB() {
       )
     `);
 
-    // Add columns to existing tables if they don't exist yet
-    await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
-    await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
-
     await conn.query(`
       CREATE TABLE IF NOT EXISTS wedding_bookings (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -76,10 +88,6 @@ async function initDB() {
       )
     `);
 
-    // Add columns to existing wedding_bookings table if they don't exist yet
-    await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
-    await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
-
     await conn.query(`
       CREATE TABLE IF NOT EXISTS audit_log (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -95,6 +103,12 @@ async function initDB() {
       )
     `);
 
+    // Safe migrations for existing installations
+    await safeAddColumn(conn, 'bookings', 'no_payment', 'TINYINT(1) DEFAULT 0');
+    await safeAddColumn(conn, 'bookings', 'cancelled', 'TINYINT(1) DEFAULT 0');
+    await safeAddColumn(conn, 'wedding_bookings', 'no_payment', 'TINYINT(1) DEFAULT 0');
+    await safeAddColumn(conn, 'wedding_bookings', 'cancelled', 'TINYINT(1) DEFAULT 0');
+
     const [rows] = await conn.query('SELECT COUNT(*) as count FROM users');
     if (rows[0].count === 0) {
       const bcrypt = require('bcryptjs');
@@ -103,7 +117,7 @@ async function initDB() {
         'INSERT INTO users (name, email, password, role, venue) VALUES (?, ?, ?, ?, ?)',
         ['Manager', 'manager@rivierplaas.co.za', hash, 'manager', 'Both']
       );
-      console.log('Default manager account created: manager@rivierplaas.co.za / manager123');
+      console.log('Default manager account created');
     }
   } finally {
     conn.release();

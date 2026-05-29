@@ -7,13 +7,6 @@ const { stringify } = require('csv-stringify/sync');
 
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
-    // Ensure new columns exist before querying them
-    const conn = await require('../db').pool.getConnection();
-    await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
-    await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
-    await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
-    await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
-    conn.release();
 
     const [total]      = await pool.query('SELECT COUNT(*) as c FROM bookings');
     const [paid]       = await pool.query('SELECT COUNT(*) as c FROM bookings WHERE fully_paid=1');
@@ -83,10 +76,6 @@ router.get('/dashboard/weddings/:filter', requireLogin, async (req, res) => {
 // ─── Room Bookings ───────────────────────────────────────────────────────────
 
 router.get('/bookings', requireLogin, async (req, res) => {
-  const conn = await pool.getConnection();
-  await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
-  await conn.query(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
-  conn.release();
   const { search = '', venue = '', payment = '' } = req.query;
   let sql = 'SELECT * FROM bookings WHERE 1=1';
   const params = [];
@@ -159,10 +148,6 @@ router.post('/bookings/:id/delete', requireManager, async (req, res) => {
 // ─── Wedding Bookings ────────────────────────────────────────────────────────
 
 router.get('/weddings', requireLogin, async (req, res) => {
-  const conn = await pool.getConnection();
-  await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS no_payment TINYINT(1) DEFAULT 0`).catch(()=>{});
-  await conn.query(`ALTER TABLE wedding_bookings ADD COLUMN IF NOT EXISTS cancelled TINYINT(1) DEFAULT 0`).catch(()=>{});
-  conn.release();
   const { search = '', venue = '', payment = '' } = req.query;
   let sql = 'SELECT * FROM wedding_bookings WHERE 1=1';
   const params = [];
