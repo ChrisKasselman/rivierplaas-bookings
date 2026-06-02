@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rivierplaas — Clock In / Out</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body">
+  <div class="login-bg-logo"><img src="/images/logo.jpg" alt=""></div>
+  <div class="login-wrap">
+    <div class="login-card" style="max-width:420px">
+      <img src="/images/logo.jpg" alt="Rivierplaas" class="login-logo-img">
+      <h2 style="text-align:center;margin:0.5rem 0 0.25rem;font-size:1.2rem">Employee Clock In / Out</h2>
+      <p class="login-sub" style="margin-bottom:1.5rem">Enter your code and select an action</p>
+
+      <% if(message) { %>
+        <div class="alert alert-success" style="text-align:center;font-size:1rem;padding:1rem"><%= message %></div>
+        <a href="/clock" class="btn btn-primary btn-full" style="margin-top:1rem">Clock Again</a>
+      <% } else { %>
+        <% if(error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <form method="POST" action="/clock">
+          <div class="form-group">
+            <label>Your clock-in code</label>
+            <input type="text" name="clock_code" placeholder="e.g. ABC1" style="text-transform:uppercase;letter-spacing:0.15em;font-size:1.3rem;text-align:center" required autofocus autocomplete="off">
+          </div>
+          <div class="clock-actions">
+            <button type="submit" name="action" value="in" class="btn btn-clock-in">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Clock In
+            </button>
+            <button type="submit" name="action" value="out" class="btn btn-clock-out">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Clock Out
+            </button>
+          </div>
+        </form>
+      <% } %>
+      <div style="text-align:center;margin-top:1.5rem">
+        <a href="/login" class="muted" style="font-size:0.8rem">Staff login →</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

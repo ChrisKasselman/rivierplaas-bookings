@@ -125,3 +125,34 @@ async function initDB() {
 }
 
 module.exports = { pool, initDB };
+// Note: called separately after initDB for T&A tables
+async function initTADB() {
+  const conn = await pool.getConnection();
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        phone VARCHAR(30),
+        clock_code VARCHAR(10) UNIQUE NOT NULL,
+        active TINYINT(1) DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        employee_id INT NOT NULL,
+        clock_in DATETIME NOT NULL,
+        clock_out DATETIME,
+        hours_worked DECIMAL(5,2),
+        date DATE NOT NULL,
+        notes VARCHAR(255),
+        FOREIGN KEY (employee_id) REFERENCES employees(id)
+      )
+    `);
+  } finally {
+    conn.release();
+  }
+}
+module.exports = { pool, initDB, initTADB };

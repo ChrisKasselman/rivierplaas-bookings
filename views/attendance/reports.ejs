@@ -1,0 +1,101 @@
+<%- include('../layout-top', { title: 'Attendance Reports', page: 'attendance', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Attendance reports</h1>
+  <a href="/attendance/records" class="btn btn-ghost">← Records</a>
+</div>
+
+<!-- Monthly report controls -->
+<div class="report-controls">
+  <form method="GET" action="/attendance/reports" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+    <label style="font-size:0.85rem;color:#6b7280">Month</label>
+    <select name="month">
+      <% months.forEach((m, i) => { %>
+        <option value="<%= i+1 %>" <%= month === i+1 ? 'selected' : '' %>><%= m %></option>
+      <% }) %>
+    </select>
+    <select name="year">
+      <% for(let y = new Date().getFullYear(); y >= new Date().getFullYear()-2; y--) { %>
+        <option value="<%= y %>" <%= year === y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+    <button type="submit" class="btn btn-secondary">View</button>
+    <a href="/attendance/export?from=<%= year %>-<%= String(month).padStart(2,'0') %>-01&to=<%= year %>-<%= String(month).padStart(2,'0') %>-31" class="btn btn-ghost">↓ Export month</a>
+  </form>
+</div>
+
+<!-- Monthly summary -->
+<h2 class="section-title"><%= months[month-1] %> <%= year %> — Monthly summary</h2>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Employee</th><th>Phone</th><th>Days worked</th><th>Total hours</th></tr>
+    </thead>
+    <tbody>
+      <% if(!monthly.length) { %>
+        <tr><td colspan="4" class="empty-row">No records for this month.</td></tr>
+      <% } %>
+      <% let mTotalDays=0, mTotalHours=0;
+         monthly.forEach(r => { mTotalDays += r.days_worked; mTotalHours += parseFloat(r.total_hours||0); %>
+      <tr>
+        <td><strong><%= r.name %></strong></td>
+        <td class="muted"><%= r.phone || '—' %></td>
+        <td><%= r.days_worked %> days</td>
+        <td><strong><%= parseFloat(r.total_hours||0).toFixed(2) %>h</strong></td>
+      </tr>
+      <% }) %>
+      <% if(monthly.length) { %>
+      <tr style="background:#f9fafb;font-weight:600">
+        <td colspan="2">Total</td>
+        <td><%= mTotalDays %> days</td>
+        <td><%= mTotalHours.toFixed(2) %>h</td>
+      </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Weekly summary -->
+<h2 class="section-title" style="margin-top:2rem">Weekly summary (last 8 weeks)</h2>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Week starting</th><th>Employee</th><th>Days worked</th><th>Total hours</th></tr>
+    </thead>
+    <tbody>
+      <% if(!weekly.length) { %>
+        <tr><td colspan="4" class="empty-row">No records.</td></tr>
+      <% } %>
+      <% weekly.forEach(r => { %>
+      <tr>
+        <td><%= new Date(r.week_start).toLocaleDateString('en-ZA', {day:'numeric',month:'short',year:'numeric'}) %></td>
+        <td><strong><%= r.name %></strong></td>
+        <td><%= r.days_worked %> days</td>
+        <td><strong><%= parseFloat(r.total_hours||0).toFixed(2) %>h</strong></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Daily summary -->
+<h2 class="section-title" style="margin-top:2rem">Daily summary (last 30 days)</h2>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Date</th><th>Employees present</th><th>Total hours</th></tr>
+    </thead>
+    <tbody>
+      <% if(!daily.length) { %>
+        <tr><td colspan="3" class="empty-row">No records.</td></tr>
+      <% } %>
+      <% daily.forEach(r => { %>
+      <tr>
+        <td><%= new Date(r.date).toLocaleDateString('en-ZA', {weekday:'short',day:'numeric',month:'short',year:'numeric'}) %></td>
+        <td><%= r.employees_present %></td>
+        <td><strong><%= parseFloat(r.total_hours||0).toFixed(2) %>h</strong></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../layout-bottom') %>

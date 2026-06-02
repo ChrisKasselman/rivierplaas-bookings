@@ -35,6 +35,10 @@
         </a>
         <% if(user.role === 'manager') { %>
         <div class="nav-section">Manager</div>
+        <a href="/attendance" class="nav-item <%= page==='attendance'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Time & Attendance
+        </a>
         <a href="/admin" class="nav-item <%= page==='admin'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM4 20a8 8 0 0 1 16 0"/></svg>
           Admin panel
@@ -46,6 +50,10 @@
         <a href="/export" class="nav-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
+        </a>
+        <a href="/admin/backup" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><path d="M7 10l5 5 5-5"/></svg>
+          Full backup (ZIP)
         </a>
         <% } %>
       </nav>

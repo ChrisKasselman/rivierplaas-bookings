@@ -1,0 +1,42 @@
+<%- include('../layout-top', { title: employee && employee.id ? 'Edit Employee' : 'New Employee', page: 'attendance', user }) %>
+<div class="page-header">
+  <h1 class="page-title"><%= employee && employee.id ? 'Edit employee' : 'New employee' %></h1>
+  <a href="/attendance" class="btn btn-ghost">← Back</a>
+</div>
+
+<% if(error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<div class="form-card">
+  <form method="POST" action="/attendance/employees/<%= employee && employee.id ? employee.id + '/edit' : 'new' %>">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Full name <span class="req">*</span></label>
+        <input type="text" name="name" value="<%= employee ? employee.name||'' : '' %>" required>
+      </div>
+      <div class="form-group full">
+        <label>Phone number</label>
+        <input type="tel" name="phone" value="<%= employee ? employee.phone||'' : '' %>" placeholder="e.g. 082 123 4567">
+      </div>
+      <div class="form-group full">
+        <label>Clock-in code <span class="req">*</span></label>
+        <input type="text" name="clock_code" value="<%= employee ? employee.clock_code||'' : '' %>"
+          placeholder="e.g. SAR1" style="text-transform:uppercase;letter-spacing:0.1em"
+          maxlength="10" required autocomplete="off">
+        <div class="field-hint">Short unique code the employee uses to clock in/out. Letters and numbers only.</div>
+      </div>
+      <% if(employee && employee.id) { %>
+      <div class="form-group full">
+        <label class="checkbox-label">
+          <input type="checkbox" name="active" value="1" <%= employee.active ? 'checked' : '' %>>
+          Active employee
+        </label>
+      </div>
+      <% } %>
+    </div>
+    <div class="form-footer">
+      <a href="/attendance" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save employee</button>
+    </div>
+  </form>
+</div>
+<%- include('../layout-bottom') %>

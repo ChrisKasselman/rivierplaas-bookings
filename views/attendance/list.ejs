@@ -1,0 +1,42 @@
+<%- include('../layout-top', { title: 'Employees', page: 'attendance', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Employees</h1>
+  <div style="display:flex;gap:0.5rem">
+    <a href="/attendance/records" class="btn btn-secondary">📋 Attendance records</a>
+    <a href="/attendance/reports" class="btn btn-secondary">📊 Reports</a>
+    <a href="/attendance/employees/new" class="btn btn-primary">+ Add employee</a>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Name</th><th>Phone</th><th>Clock code</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <% if(!employees.length) { %>
+        <tr><td colspan="5" class="empty-row">No employees added yet.</td></tr>
+      <% } %>
+      <% employees.forEach(e => { %>
+      <tr class="<%= !e.active ? 'row-cancelled' : '' %>">
+        <td><strong><%= e.name %></strong></td>
+        <td class="muted"><%= e.phone || '—' %></td>
+        <td><span class="clock-code-badge"><%= e.clock_code %></span></td>
+        <td><span class="badge <%= e.active ? 'badge-success' : 'badge-cancelled' %>"><%= e.active ? 'Active' : 'Inactive' %></span></td>
+        <td class="actions-cell">
+          <a href="/attendance/employees/<%= e.id %>/edit" class="btn btn-sm">Edit</a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<div class="clock-link-box">
+  <div>
+    <div style="font-weight:600;margin-bottom:0.25rem">Employee clock-in page</div>
+    <div class="muted" style="font-size:0.85rem">Share this link with your employees</div>
+  </div>
+  <a href="/clock" target="_blank" class="btn btn-secondary">/clock →</a>
+</div>
+<%- include('../layout-bottom') %>

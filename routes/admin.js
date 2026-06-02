@@ -85,3 +85,60 @@ router.get('/admin/audit', requireManager, async (req, res) => {
 });
 
 module.exports = router;
+
+// ─── Full data backup ─────────────────────────────────────────────────────────
+
+const archiver = require('archiver');
+
+router.get('/admin/backup', requireManager, async (req, res) => {
+  try {
+    const { stringify } = require('csv-stringify/sync');
+
+    const [bookings] = await pool.query('SELECT * FROM bookings ORDER BY checkin DESC');
+    const [weddings] = await pool.query('SELECT * FROM wedding_bookings ORDER BY event_date DESC');
+    const [employees] = await pool.query('SELECT * FROM employees ORDER BY name');
+    const [attendance] = await pool.query(`
+      SELECT a.*, e.name as emp_name, e.phone as emp_phone
+      FROM attendance a JOIN employees e ON a.employee_id = e.id
+      ORDER BY a.date DESC
+    `);
+    const [users] = await pool.query('SELECT id, name, email, role, venue, created_at FROM users ORDER BY name');
+    const [auditlogs] = await pool.query('SELECT * FROM audit_log ORDER BY created_at DESC');
+
+    const fmt = (rows, fields) => stringify(rows.map(r => {
+      const obj = {};
+      fields.forEach(f => {
+        let v = r[f];
+        if (v instanceof Date) v = v.toISOString().replace('T', ' ').substring(0, 19);
+        obj[f] = v ?? '';
+      });
+      return obj;
+    }), { header: true });
+
+    const bookingsCSV = fmt(bookings, ['id','firstname','surname','email','cell','venue','room','checkin','checkout','deposit_paid','fully_paid','no_payment','cancelled','notes','created_at']);
+    const weddingsCSV = fmt(weddings, ['id','firstname','surname','email','cell','venue','event_date','event_end_date','guests','deposit_paid','fully_paid','no_payment','cancelled','notes','created_at']);
+    const employeesCSV = fmt(employees, ['id','name','phone','clock_code','active','created_at']);
+    const attendanceCSV = fmt(attendance, ['id','emp_name','emp_phone','date','clock_in','clock_out','hours_worked']);
+    const usersCSV = fmt(users, ['id','name','email','role','venue','created_at']);
+    const auditCSV = fmt(auditlogs, ['id','user_name','user_email','action','entity_type','entity_id','detail','ip_address','created_at']);
+
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="rivierplaas-backup-${dateStr}.zip"`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.pipe(res);
+    archive.append(bookingsCSV,   { name: 'room-bookings.csv' });
+    archive.append(weddingsCSV,   { name: 'wedding-bookings.csv' });
+    archive.append(employeesCSV,  { name: 'employees.csv' });
+    archive.append(attendanceCSV, { name: 'attendance.csv' });
+    archive.append(usersCSV,      { name: 'staff-users.csv' });
+    archive.append(auditCSV,      { name: 'audit-log.csv' });
+    archive.finalize();
+
+  } catch (err) {
+    console.error('Backup error:', err);
+    res.status(500).send('Backup failed. Please try again.');
+  }
+});

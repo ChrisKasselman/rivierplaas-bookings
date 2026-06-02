@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const { initDB } = require('./db');
+const { initDB, initTADB } = require('./db');
 
 const app = express();
 
@@ -21,12 +21,13 @@ app.use(session({
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/bookings'));
 app.use('/', require('./routes/admin'));
+app.use('/', require('./routes/attendance'));
 
 app.get('/', (req, res) => res.redirect('/dashboard'));
 
 const PORT = process.env.PORT || 3000;
 
-initDB().then(() => {
+Promise.all([initDB(), initTADB()]).then(() => {
   app.listen(PORT, () => console.log(`Rivierplaas Booking System running on port ${PORT}`));
 }).catch(err => {
   console.error('Database init failed:', err);
