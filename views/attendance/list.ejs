@@ -1,13 +1,15 @@
-<%- include('../layout-top', { title: 'Employees', page: 'attendance', user }) %>
+<%- include('../layout-top', { title: 'Time & Attendance', page: 'attendance', user }) %>
 <div class="page-header">
-  <h1 class="page-title">Employees</h1>
+  <h1 class="page-title">Time & Attendance</h1>
   <div style="display:flex;gap:0.5rem">
-    <a href="/attendance/records" class="btn btn-secondary">📋 Attendance records</a>
+    <a href="/attendance/records" class="btn btn-secondary">📋 Records</a>
     <a href="/attendance/reports" class="btn btn-secondary">📊 Reports</a>
     <a href="/attendance/employees/new" class="btn btn-primary">+ Add employee</a>
   </div>
 </div>
 
+<!-- Employees -->
+<h2 class="section-title">Employees</h2>
 <div class="table-wrap">
   <table class="data-table">
     <thead>
@@ -32,7 +34,46 @@
   </table>
 </div>
 
-<div class="clock-link-box">
+<!-- Staff T&A access -->
+<h2 class="section-title" style="margin-top:2rem">Staff access to records & reports</h2>
+<p class="muted" style="font-size:0.85rem;margin-bottom:1rem">Managers always have full access. Toggle access for individual staff members below.</p>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Staff member</th><th>Role</th><th>T&A access</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% staff.forEach(s => { %>
+      <tr>
+        <td><strong><%= s.name %></strong><div class="muted" style="font-size:0.78rem"><%= s.email %></div></td>
+        <td><span class="badge <%= s.role==='manager'?'badge-warning':'badge-venue' %>"><%= s.role %></span></td>
+        <td>
+          <% if(s.role === 'manager') { %>
+            <span class="badge badge-success">Full access</span>
+          <% } else { %>
+            <span class="badge <%= s.ta_access ? 'badge-success' : 'badge-cancelled' %>">
+              <%= s.ta_access ? 'Access granted' : 'No access' %>
+            </span>
+          <% } %>
+        </td>
+        <td>
+          <% if(s.role !== 'manager') { %>
+          <form method="POST" action="/attendance/staff/<%= s.id %>/access" style="display:inline">
+            <input type="hidden" name="ta_access" value="<%= s.ta_access ? '0' : '1' %>">
+            <button type="submit" class="btn btn-sm <%= s.ta_access ? 'btn-danger' : 'btn-primary' %>">
+              <%= s.ta_access ? 'Remove access' : 'Grant access' %>
+            </button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Kiosk info -->
+<div class="clock-link-box" style="margin-top:2rem">
   <div>
     <div style="font-weight:600;margin-bottom:0.25rem">Tablet kiosk page</div>
     <div class="muted" style="font-size:0.85rem">Open this URL on your entrance tablet and leave it running</div>
@@ -40,7 +81,6 @@
   </div>
   <a href="/clock" target="_blank" class="btn btn-secondary">Open →</a>
 </div>
-
 <div class="clock-link-box" style="margin-top:0.75rem;background:#fefce8;border-color:#fde047">
   <div>
     <div style="font-weight:600;margin-bottom:0.25rem">🔒 Kiosk PIN</div>

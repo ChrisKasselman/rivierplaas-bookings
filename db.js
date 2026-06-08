@@ -108,6 +108,10 @@ async function initDB() {
     await safeAddColumn(conn, 'bookings', 'cancelled', 'TINYINT(1) DEFAULT 0');
     await safeAddColumn(conn, 'wedding_bookings', 'no_payment', 'TINYINT(1) DEFAULT 0');
     await safeAddColumn(conn, 'wedding_bookings', 'cancelled', 'TINYINT(1) DEFAULT 0');
+    await safeAddColumn(conn, 'users', 'ta_access', 'TINYINT(1) DEFAULT 0');
+
+    // Set session timezone to SAST (UTC+2)
+    await conn.query(`SET time_zone = '+02:00'`);
 
     const [rows] = await conn.query('SELECT COUNT(*) as count FROM users');
     if (rows[0].count === 0) {

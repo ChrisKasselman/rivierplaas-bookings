@@ -42,8 +42,8 @@
       <tr>
         <td><%= new Date(r.date).toLocaleDateString('en-ZA', {weekday:'short', year:'numeric', month:'short', day:'numeric'}) %></td>
         <td><strong><%= r.emp_name %></strong><% if(r.emp_phone) { %><div class="muted" style="font-size:0.78rem"><%= r.emp_phone %></div><% } %></td>
-        <td><%= r.clock_in ? new Date(r.clock_in).toLocaleTimeString('en-ZA', {hour:'2-digit',minute:'2-digit'}) : '—' %></td>
-        <td><%= r.clock_out ? new Date(r.clock_out).toLocaleTimeString('en-ZA', {hour:'2-digit',minute:'2-digit'}) : '<span class="badge badge-warning">Still in</span>' %></td>
+        <td><%= fmtTime(r.clock_in) %></td>
+        <td><%= r.clock_out ? fmtTime(r.clock_out) : '<span class="badge badge-warning">Still in</span>' %></td>
         <td><% if(r.hours_worked) { %><strong><%= parseFloat(r.hours_worked).toFixed(2) %>h</strong><% } else { %><span class="muted">—</span><% } %></td>
       </tr>
       <% }) %>

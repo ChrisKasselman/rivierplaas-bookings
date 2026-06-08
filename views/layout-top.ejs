@@ -33,11 +33,17 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14"/><path d="M3 21h18M9 21V12h6v9"/></svg>
           Room availability
         </a>
+        <% if(user.role === 'manager' || user.ta_access) { %>
+        <a href="/attendance/records" class="nav-item <%= page==='attendance'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Time & Attendance
+        </a>
+        <% } %>
         <% if(user.role === 'manager') { %>
         <div class="nav-section">Manager</div>
         <a href="/attendance" class="nav-item <%= page==='attendance'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Time & Attendance
+          T&A Management
         </a>
         <a href="/admin" class="nav-item <%= page==='admin'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM4 20a8 8 0 0 1 16 0"/></svg>

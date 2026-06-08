@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.render('auth/login', { error: 'Invalid email or password.' });
-    req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role, venue: user.venue };
+    req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role, venue: user.venue, ta_access: !!user.ta_access };
     await auditLog(req, 'LOGIN', 'user', user.id, `${user.name} logged in`);
     res.redirect('/dashboard');
   } catch (err) {
