@@ -2,44 +2,303 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Rivierplaas — Clock In / Out</title>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Kiosk lockdown */
+    * { -webkit-user-select: none; user-select: none; }
+    input { -webkit-user-select: text; user-select: text; }
+    body { overscroll-behavior: none; }
+
+    .kiosk-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      padding: 1rem;
+      position: relative;
+    }
+    .kiosk-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+    .kiosk-logo { width: 180px; margin: 0 auto 0.5rem; display: block; }
+    .kiosk-title { font-size: 1.3rem; font-weight: 700; margin: 0.5rem 0 0.25rem; color: #1a1a2e; }
+    .kiosk-sub { font-size: 0.9rem; color: #6b7280; margin-bottom: 1.5rem; }
+
+    .kiosk-input {
+      width: 100%;
+      font-size: 2rem;
+      text-align: center;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 0.75rem;
+      margin-bottom: 1.25rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .kiosk-input:focus { border-color: #4f7942; }
+
+    .kiosk-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .kiosk-btn {
+      padding: 1.1rem;
+      border-radius: 14px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    .kiosk-btn:active { transform: scale(0.97); opacity: 0.85; }
+    .btn-in  { background: #16a34a; color: #fff; }
+    .btn-out { background: #dc2626; color: #fff; }
+
+    .kiosk-message {
+      border-radius: 12px;
+      padding: 1.25rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .kiosk-message.success { background: #dcfce7; color: #166534; }
+    .kiosk-message.error   { background: #fee2e2; color: #991b1b; }
+
+    .kiosk-timer {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-top: 0.5rem;
+    }
+    .kiosk-timer span { font-weight: 700; color: #4f7942; }
+
+    /* Hidden exit trigger — tap logo 5 times */
+    .exit-trigger { cursor: default; }
+
+    /* PIN overlay */
+    .pin-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .pin-overlay.visible { display: flex; }
+    .pin-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 280px;
+      text-align: center;
+    }
+    .pin-card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .pin-card p  { font-size: 0.85rem; color: #6b7280; margin-bottom: 1rem; }
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .pin-dot {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      transition: background 0.15s;
+    }
+    .pin-dot.filled { background: #1a1a2e; }
+    .pin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .pin-key {
+      padding: 0.85rem;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 1.2rem;
+      font-weight: 600;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+    .pin-key:active { background: #e5e7eb; }
+    .pin-cancel { font-size: 0.85rem; color: #6b7280; cursor: pointer; margin-top: 0.5rem; display: block; }
+    .pin-error  { font-size: 0.85rem; color: #dc2626; margin-top: 0.5rem; display: none; }
+
+    .clock-time {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
-<body class="login-body">
-  <div class="login-bg-logo"><img src="/images/logo.jpg" alt=""></div>
-  <div class="login-wrap">
-    <div class="login-card" style="max-width:420px">
-      <img src="/images/logo.jpg" alt="Rivierplaas" class="login-logo-img">
-      <h2 style="text-align:center;margin:0.5rem 0 0.25rem;font-size:1.2rem">Employee Clock In / Out</h2>
-      <p class="login-sub" style="margin-bottom:1.5rem">Enter your code and select an action</p>
+<body>
+  <div class="kiosk-wrap">
+    <div class="kiosk-card">
+      <!-- Tap logo 5x to show PIN exit -->
+      <img src="/images/logo.jpg" alt="Rivierplaas" class="kiosk-logo exit-trigger" id="logoTap">
+      <div class="clock-time" id="liveClock"></div>
 
       <% if(message) { %>
-        <div class="alert alert-success" style="text-align:center;font-size:1rem;padding:1rem"><%= message %></div>
-        <a href="/clock" class="btn btn-primary btn-full" style="margin-top:1rem">Clock Again</a>
+        <div class="kiosk-message success"><%= message %></div>
+        <div class="kiosk-timer">Resetting in <span id="countdown">5</span> seconds…</div>
+        <script>
+          let t = 5;
+          const cd = document.getElementById('countdown');
+          const iv = setInterval(() => {
+            t--;
+            cd.textContent = t;
+            if (t <= 0) { clearInterval(iv); window.location.href = '/clock'; }
+          }, 1000);
+        </script>
       <% } else { %>
-        <% if(error) { %><div class="alert alert-error"><%= error %></div><% } %>
-        <form method="POST" action="/clock">
-          <div class="form-group">
-            <label>Your clock-in code</label>
-            <input type="text" name="clock_code" placeholder="e.g. ABC1" style="text-transform:uppercase;letter-spacing:0.15em;font-size:1.3rem;text-align:center" required autofocus autocomplete="off">
-          </div>
-          <div class="clock-actions">
-            <button type="submit" name="action" value="in" class="btn btn-clock-in">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Clock In
-            </button>
-            <button type="submit" name="action" value="out" class="btn btn-clock-out">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Clock Out
-            </button>
+        <h2 class="kiosk-title">Employee Clock In / Out</h2>
+        <p class="kiosk-sub">Enter your code below</p>
+
+        <% if(error) { %>
+          <div class="kiosk-message error"><%= error %></div>
+        <% } %>
+
+        <form method="POST" action="/clock" id="clockForm">
+          <input type="text" name="clock_code" id="codeInput"
+            class="kiosk-input"
+            placeholder="YOUR CODE"
+            maxlength="10"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            autofocus
+            required>
+          <div class="kiosk-btns">
+            <button type="submit" name="action" value="in"  class="kiosk-btn btn-in">🟢 Clock In</button>
+            <button type="submit" name="action" value="out" class="kiosk-btn btn-out">🔴 Clock Out</button>
           </div>
         </form>
       <% } %>
-      <div style="text-align:center;margin-top:1.5rem">
-        <a href="/login" class="muted" style="font-size:0.8rem">Staff login →</a>
-      </div>
     </div>
   </div>
+
+  <!-- PIN exit overlay -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-card">
+      <h3>Manager access</h3>
+      <p>Enter your 4-digit PIN to exit kiosk</p>
+      <div class="pin-dots">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="pin-grid">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <button class="pin-key" onclick="pinClear()" style="font-size:0.9rem">⌫</button>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key" onclick="pinClear()" style="font-size:0.9rem;color:#dc2626">✕</button>
+      </div>
+      <div class="pin-error" id="pinError">Incorrect PIN. Please try again.</div>
+      <span class="pin-cancel" onclick="closePinOverlay()">Cancel</span>
+    </div>
+  </div>
+
+  <script>
+    // Live clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('liveClock').textContent =
+        now.toLocaleDateString('en-ZA', { weekday:'long', day:'numeric', month:'long' }) +
+        ' · ' +
+        now.toLocaleTimeString('en-ZA', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Prevent back/forward navigation
+    history.pushState(null, null, location.href);
+    window.onpopstate = () => history.pushState(null, null, location.href);
+
+    // Logo tap counter to show PIN overlay
+    let tapCount = 0, tapTimer;
+    document.getElementById('logoTap').addEventListener('click', () => {
+      tapCount++;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
+      if (tapCount >= 5) { tapCount = 0; showPinOverlay(); }
+    });
+
+    // PIN logic
+    const KIOSK_PIN = '<%= process.env.KIOSK_PIN || "1234" %>';
+    let pinEntry = '';
+
+    function showPinOverlay() {
+      pinEntry = '';
+      updateDots();
+      document.getElementById('pinError').style.display = 'none';
+      document.getElementById('pinOverlay').classList.add('visible');
+    }
+    function closePinOverlay() {
+      document.getElementById('pinOverlay').classList.remove('visible');
+      pinEntry = '';
+      updateDots();
+    }
+    function pinKey(k) {
+      if (pinEntry.length >= 4) return;
+      pinEntry += k;
+      updateDots();
+      if (pinEntry.length === 4) {
+        setTimeout(() => {
+          if (pinEntry === KIOSK_PIN) {
+            window.location.href = '/dashboard';
+          } else {
+            document.getElementById('pinError').style.display = 'block';
+            pinEntry = '';
+            updateDots();
+          }
+        }, 200);
+      }
+    }
+    function pinClear() {
+      pinEntry = pinEntry.slice(0, -1);
+      updateDots();
+    }
+    function updateDots() {
+      for (let i = 0; i < 4; i++) {
+        document.getElementById('d' + i).classList.toggle('filled', i < pinEntry.length);
+      }
+    }
+
+    // Block right-click
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    // Block keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && ['r','l','t','w','n','f'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+      if (e.key === 'F5' || e.key === 'F12') e.preventDefault();
+    });
+  </script>
 </body>
 </html>

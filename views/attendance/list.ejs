@@ -34,9 +34,17 @@
 
 <div class="clock-link-box">
   <div>
-    <div style="font-weight:600;margin-bottom:0.25rem">Employee clock-in page</div>
-    <div class="muted" style="font-size:0.85rem">Share this link with your employees</div>
+    <div style="font-weight:600;margin-bottom:0.25rem">Tablet kiosk page</div>
+    <div class="muted" style="font-size:0.85rem">Open this URL on your entrance tablet and leave it running</div>
+    <div style="font-family:monospace;font-size:0.9rem;margin-top:0.4rem;color:#1a1a2e">/clock</div>
   </div>
-  <a href="/clock" target="_blank" class="btn btn-secondary">/clock →</a>
+  <a href="/clock" target="_blank" class="btn btn-secondary">Open →</a>
+</div>
+
+<div class="clock-link-box" style="margin-top:0.75rem;background:#fefce8;border-color:#fde047">
+  <div>
+    <div style="font-weight:600;margin-bottom:0.25rem">🔒 Kiosk PIN</div>
+    <div class="muted" style="font-size:0.85rem">Tap the logo 5 times on the tablet to enter your manager PIN and exit kiosk mode. Set your PIN via the <strong>KIOSK_PIN</strong> environment variable in Railway (default: 1234).</div>
+  </div>
 </div>
 <%- include('../layout-bottom') %>
