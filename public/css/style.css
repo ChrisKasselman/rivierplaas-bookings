@@ -324,3 +324,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   color: #166534; border-radius: 8px; padding: 0.75rem 1rem;
   margin-bottom: 1rem;
 }
+
+/* ── Charts ─────────────────────────────────────────────── */
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+}
+
+/* ── Side by side charts ────────────────────────────────── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.chart-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.chart-card-title { font-size: 0.9rem; font-weight: 600; color: #1a1a2e; }
+.chart-card-year  { font-size: 0.8rem; color: #9ca3af; }
+@media (max-width: 900px) {
+  .charts-row { grid-template-columns: 1fr; }
+}

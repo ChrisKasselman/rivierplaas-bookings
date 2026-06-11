@@ -22,6 +22,27 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     const [wUnpaid]    = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE deposit_paid=0 AND fully_paid=0 AND no_payment=0 AND cancelled=0');
     const [wNopayment] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE no_payment=1');
     const [wCancelled] = await pool.query('SELECT COUNT(*) as c FROM wedding_bookings WHERE cancelled=1');
+    // Chart data — bookings and weddings per month for current year
+    const currentYear = new Date().getFullYear();
+    const [roomsByMonth] = await pool.query(`
+      SELECT MONTH(checkin) as month, COUNT(*) as bookings
+      FROM bookings
+      WHERE YEAR(checkin) = ? AND cancelled = 0
+      GROUP BY MONTH(checkin)
+    `, [currentYear]);
+    const [weddingsByMonth] = await pool.query(`
+      SELECT MONTH(event_date) as month, COUNT(*) as bookings
+      FROM wedding_bookings
+      WHERE YEAR(event_date) = ? AND cancelled = 0
+      GROUP BY MONTH(event_date)
+    `, [currentYear]);
+
+    // Build 12-month arrays
+    const roomChart = Array(12).fill(0);
+    const weddingChart = Array(12).fill(0);
+    roomsByMonth.forEach(r => { roomChart[r.month - 1] = r.bookings; });
+    weddingsByMonth.forEach(r => { weddingChart[r.month - 1] = r.bookings; });
+
     res.render('dashboard', {
       user: req.session.user,
       stats: {
@@ -29,11 +50,12 @@ router.get('/dashboard', requireLogin, async (req, res) => {
         nopayment: nopayment[0].c, cancelled: cancelled[0].c, upcoming: upcoming[0].c,
         wTotal: wTotal[0].c, wUpcoming: wUpcoming[0].c, wPaid: wPaid[0].c, wDeposit: wDeposit[0].c,
         wUnpaid: wUnpaid[0].c, wNopayment: wNopayment[0].c, wCancelled: wCancelled[0].c
-      }
+      },
+      chartData: { rooms: roomChart, weddings: weddingChart, year: currentYear }
     });
   } catch (err) {
     console.error(err);
-    res.render('dashboard', { user: req.session.user, stats: { total:0, paid:0, deposit:0, unpaid:0, upcoming:0, wTotal:0, wUpcoming:0, wPaid:0, wDeposit:0, wUnpaid:0 } });
+    res.render('dashboard', { user: req.session.user, stats: { total:0, paid:0, deposit:0, unpaid:0, upcoming:0, nopayment:0, cancelled:0, wTotal:0, wUpcoming:0, wPaid:0, wDeposit:0, wUnpaid:0, wNopayment:0, wCancelled:0 }, chartData: { rooms: Array(12).fill(0), weddings: Array(12).fill(0), year: new Date().getFullYear() } });
   }
 });
 

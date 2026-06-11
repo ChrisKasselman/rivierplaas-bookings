@@ -68,6 +68,28 @@
   </a>
 </div>
 
+<!-- Charts side by side -->
+<div class="charts-row" style="margin-top:2.5rem">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <span class="chart-card-title">Room bookings</span>
+      <span class="chart-card-year"><%= chartData.year %></span>
+    </div>
+    <div style="position:relative;height:220px">
+      <canvas id="roomChart" role="img" aria-label="Room bookings per month <%= chartData.year %>">Room bookings by month.</canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <span class="chart-card-title">Wedding bookings</span>
+      <span class="chart-card-year"><%= chartData.year %></span>
+    </div>
+    <div style="position:relative;height:220px">
+      <canvas id="weddingChart" role="img" aria-label="Wedding bookings per month <%= chartData.year %>">Wedding bookings by month.</canvas>
+    </div>
+  </div>
+</div>
+
 <div class="quick-links" style="margin-top:2rem">
   <a href="/bookings" class="quick-card">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -108,3 +130,59 @@
   <% } %>
 </div>
 <%- include('layout-bottom') %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const roomData    = <%- JSON.stringify(chartData.rooms) %>;
+const weddingData = <%- JSON.stringify(chartData.weddings) %>;
+const year        = <%= chartData.year %>;
+
+const commonOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} booking${ctx.parsed.y !== 1 ? 's' : ''}` } }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: { stepSize: 1, precision: 0 },
+      grid: { color: 'rgba(0,0,0,0.05)' }
+    },
+    x: { grid: { display: false } }
+  }
+};
+
+new Chart(document.getElementById('roomChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [{
+      data: roomData,
+      backgroundColor: 'rgba(79,121,66,0.75)',
+      borderColor: '#4f7942',
+      borderWidth: 2,
+      borderRadius: 6,
+      hoverBackgroundColor: '#4f7942'
+    }]
+  },
+  options: commonOptions
+});
+
+new Chart(document.getElementById('weddingChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [{
+      data: weddingData,
+      backgroundColor: 'rgba(124,58,237,0.7)',
+      borderColor: '#7c3aed',
+      borderWidth: 2,
+      borderRadius: 6,
+      hoverBackgroundColor: '#7c3aed'
+    }]
+  },
+  options: commonOptions
+});
+</script>
