@@ -15,7 +15,8 @@ function todaySAST() {
 }
 function fmtTime(dt) {
   if (!dt) return '—';
-  const d = new Date(new Date(dt).getTime() + 2 * 60 * 60 * 1000);
+  // dt is already stored as SAST (no further offset needed)
+  const d = new Date(dt);
   return d.toISOString().substring(11, 16);
 }
 
@@ -67,7 +68,7 @@ router.post('/clock', async (req, res) => {
         return res.render('attendance/clock', { message: null, error: `${emp.name} has no open clock-in for today.` });
       }
       const record = open[0];
-      const clockInTime = new Date(new Date(record.clock_in).getTime() + 2 * 60 * 60 * 1000);
+      const clockInTime = new Date(record.clock_in);
       const hoursWorked = ((now - clockInTime) / 3600000).toFixed(2);
       await pool.query(
         'UPDATE attendance SET clock_out = ?, hours_worked = ? WHERE id = ?',
