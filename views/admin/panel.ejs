@@ -23,14 +23,18 @@
         <tr>
           <td><strong><%= s.name %></strong></td>
           <td class="muted"><%= s.email %></td>
-          <td><span class="badge <%= s.role==='manager'?'badge-warning':'badge-venue' %>"><%= s.role %></span></td>
+          <td><span class="badge <%= s.role==='executive' ? 'badge-cancelled' : (s.role==='manager' ? 'badge-warning' : 'badge-venue') %>"><%= s.role %></span></td>
           <td><%= s.venue %></td>
           <td class="actions-cell">
+            <% if(user.role === 'executive' || s.role !== 'executive') { %>
             <a href="/admin/staff/<%= s.id %>/edit" class="btn btn-sm">Edit</a>
             <% if(s.id !== user.id) { %>
             <form method="POST" action="/admin/staff/<%= s.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this staff account?')">
               <button type="submit" class="btn btn-sm btn-danger">Delete</button>
             </form>
+            <% } %>
+            <% } else { %>
+            <span class="muted" style="font-size:0.8rem">Executive only</span>
             <% } %>
           </td>
         </tr>

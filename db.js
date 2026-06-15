@@ -36,7 +36,7 @@ async function initDB() {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(150) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role ENUM('staff','manager') DEFAULT 'staff',
+        role ENUM('employee','manager','executive') DEFAULT 'employee',
         venue VARCHAR(50) DEFAULT 'Both',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -145,6 +145,27 @@ async function initDB() {
     await safeAddColumn(conn, 'wedding_bookings', 'no_payment', 'TINYINT(1) DEFAULT 0');
     await safeAddColumn(conn, 'wedding_bookings', 'cancelled', 'TINYINT(1) DEFAULT 0');
     await safeAddColumn(conn, 'users', 'ta_access', 'TINYINT(1) DEFAULT 0');
+
+    // Migrate role ENUM from ('staff','manager') to ('employee','manager','executive')
+    try {
+      const [colInfo] = await conn.query(`
+        SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role'
+      `);
+      const currentType = colInfo[0]?.COLUMN_TYPE || '';
+      if (!currentType.includes('executive')) {
+        // Widen the ENUM first so old values remain valid during transition
+        await conn.query(`ALTER TABLE users MODIFY COLUMN role ENUM('staff','manager','employee','executive') DEFAULT 'employee'`);
+        // Migrate old 'staff' -> 'employee', old 'manager' -> 'executive' (preserve full access for existing managers)
+        await conn.query(`UPDATE users SET role = 'employee' WHERE role = 'staff'`);
+        await conn.query(`UPDATE users SET role = 'executive' WHERE role = 'manager'`);
+        // Narrow the ENUM to final values
+        await conn.query(`ALTER TABLE users MODIFY COLUMN role ENUM('employee','manager','executive') DEFAULT 'employee'`);
+        console.log('Migrated user roles: staff->employee, manager->executive');
+      }
+    } catch (err) {
+      console.error('Role migration error:', err.message);
+    }
 
     // Set session timezone to SAST (UTC+2)
     await conn.query(`SET time_zone = '+02:00'`);

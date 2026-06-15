@@ -62,11 +62,9 @@
         <td class="audit-detail"><%= v.notes || '—' %></td>
         <td class="actions-cell">
           <a href="/viewings/<%= v.id %>/edit" class="btn btn-sm">Edit</a>
-          <% if(user.role === 'manager') { %>
           <form method="POST" action="/viewings/<%= v.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this viewing?')">
             <button type="submit" class="btn btn-sm btn-danger">Delete</button>
           </form>
-          <% } %>
         </td>
       </tr>
       <% }) %>

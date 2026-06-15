@@ -56,7 +56,7 @@ router.post('/viewings/:id/edit', requireLogin, async (req, res) => {
   res.redirect('/viewings');
 });
 
-router.post('/viewings/:id/delete', requireManager, async (req, res) => {
+router.post('/viewings/:id/delete', requireLogin, async (req, res) => {
   const [rows] = await pool.query('SELECT firstname, surname FROM viewings WHERE id = ?', [req.params.id]);
   if (rows.length) {
     await auditLog(req, 'DELETE_VIEWING', 'viewing', req.params.id, `Deleted viewing for ${rows[0].firstname} ${rows[0].surname}`);

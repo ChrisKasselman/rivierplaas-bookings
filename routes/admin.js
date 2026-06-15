@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db');
-const { requireManager } = require('../middleware/auth');
+const { requireManager, requireExecutive } = require('../middleware/auth');
 const { auditLog } = require('../middleware/audit');
 
 router.get('/admin', requireManager, async (req, res) => {
@@ -34,10 +34,15 @@ router.post('/admin/staff/new', requireManager, async (req, res) => {
   if (!name || !email || !password) {
     return res.render('admin/staff-form', { user: req.session.user, staff: req.body, error: 'All fields are required.' });
   }
+  // Only Executives can create other Executive accounts
+  let finalRole = role;
+  if (finalRole === 'executive' && req.session.user.role !== 'executive') {
+    finalRole = 'manager';
+  }
   try {
     const hash = await bcrypt.hash(password, 10);
-    const [result] = await pool.query('INSERT INTO users (name, email, password, role, venue) VALUES (?,?,?,?,?)', [name, email.toLowerCase(), hash, role, venue]);
-    await auditLog(req, 'CREATE_STAFF', 'user', result.insertId, `Created staff account: ${name} (${email}) — ${role}`);
+    const [result] = await pool.query('INSERT INTO users (name, email, password, role, venue) VALUES (?,?,?,?,?)', [name, email.toLowerCase(), hash, finalRole, venue]);
+    await auditLog(req, 'CREATE_STAFF', 'user', result.insertId, `Created staff account: ${name} (${email}) — ${finalRole}`);
     res.redirect('/admin');
   } catch (err) {
     res.render('admin/staff-form', { user: req.session.user, staff: req.body, error: 'Email already exists or error saving.' });
@@ -52,29 +57,42 @@ router.get('/admin/staff/:id/edit', requireManager, async (req, res) => {
 
 router.post('/admin/staff/:id/edit', requireManager, async (req, res) => {
   const { name, email, role, venue, password } = req.body;
+  let finalRole = role;
+  // Only Executives can promote to or edit Executive accounts
+  if (finalRole === 'executive' && req.session.user.role !== 'executive') {
+    finalRole = 'manager';
+  }
+  if (req.session.user.role !== 'executive') {
+    const [target] = await pool.query('SELECT role FROM users WHERE id=?', [req.params.id]);
+    if (target[0]?.role === 'executive') {
+      return res.redirect('/admin');
+    }
+  }
   if (password && password.trim().length > 0) {
     const hash = await bcrypt.hash(password, 10);
-    await pool.query('UPDATE users SET name=?,email=?,role=?,venue=?,password=? WHERE id=?', [name, email.toLowerCase(), role, venue, hash, req.params.id]);
+    await pool.query('UPDATE users SET name=?,email=?,role=?,venue=?,password=? WHERE id=?', [name, email.toLowerCase(), finalRole, venue, hash, req.params.id]);
   } else {
-    await pool.query('UPDATE users SET name=?,email=?,role=?,venue=? WHERE id=?', [name, email.toLowerCase(), role, venue, req.params.id]);
+    await pool.query('UPDATE users SET name=?,email=?,role=?,venue=? WHERE id=?', [name, email.toLowerCase(), finalRole, venue, req.params.id]);
   }
-  await auditLog(req, 'EDIT_STAFF', 'user', req.params.id, `Edited staff account: ${name} (${email}) — ${role}`);
+  await auditLog(req, 'EDIT_STAFF', 'user', req.params.id, `Edited staff account: ${name} (${email}) — ${finalRole}`);
   res.redirect('/admin');
 });
 
 router.post('/admin/staff/:id/delete', requireManager, async (req, res) => {
   if (parseInt(req.params.id) === req.session.user.id) return res.redirect('/admin');
-  const [rows] = await pool.query('SELECT name, email FROM users WHERE id=?', [req.params.id]);
-  if (rows.length) {
-    await auditLog(req, 'DELETE_STAFF', 'user', req.params.id, `Deleted staff account: ${rows[0].name} (${rows[0].email})`);
+  const [rows] = await pool.query('SELECT name, email, role FROM users WHERE id=?', [req.params.id]);
+  if (!rows.length) return res.redirect('/admin');
+  if (rows[0].role === 'executive' && req.session.user.role !== 'executive') {
+    return res.redirect('/admin');
   }
+  await auditLog(req, 'DELETE_STAFF', 'user', req.params.id, `Deleted staff account: ${rows[0].name} (${rows[0].email})`);
   await pool.query('DELETE FROM users WHERE id=?', [req.params.id]);
   res.redirect('/admin');
 });
 
 // ─── Audit Log ───────────────────────────────────────────────────────────────
 
-router.get('/admin/audit', requireManager, async (req, res) => {
+router.get('/admin/audit', requireExecutive, async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 50;
   const offset = (page - 1) * limit;
@@ -90,7 +108,7 @@ module.exports = router;
 
 const archiver = require('archiver');
 
-router.get('/admin/backup', requireManager, async (req, res) => {
+router.get('/admin/backup', requireExecutive, async (req, res) => {
   try {
     const { stringify } = require('csv-stringify/sync');
 

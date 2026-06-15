@@ -22,9 +22,15 @@
       <div class="form-group">
         <label>Role <span class="req">*</span></label>
         <select name="role">
-          <option value="staff" <%= !staff || staff.role==='staff' ? 'selected' : '' %>>Staff</option>
+          <option value="employee" <%= !staff || staff.role==='employee' ? 'selected' : '' %>>Employee</option>
           <option value="manager" <%= staff && staff.role==='manager' ? 'selected' : '' %>>Manager</option>
+          <% if(user.role === 'executive') { %>
+          <option value="executive" <%= staff && staff.role==='executive' ? 'selected' : '' %>>Executive</option>
+          <% } %>
         </select>
+        <div class="field-hint">
+          Employee: bookings &amp; viewings only. Manager: also manages staff accounts. Executive: full access including Time &amp; Attendance, Staff Loans, Audit Log and Backups.
+        </div>
       </div>
       <div class="form-group">
         <label>Venue access</label>

@@ -84,6 +84,9 @@ const dashboardWeddingFilters = {
 router.get('/dashboard/rooms/:filter', requireLogin, async (req, res) => {
   const filter = dashboardRoomFilters[req.params.filter];
   if (!filter) return res.redirect('/dashboard');
+  if (!['all','upcoming'].includes(req.params.filter) && !['manager','executive'].includes(req.session.user.role)) {
+    return res.redirect('/dashboard');
+  }
   const [rows] = await pool.query(filter.sql);
   res.render('dashboard/detail', { user: req.session.user, title: filter.title, rows, type: 'rooms' });
 });
@@ -91,6 +94,9 @@ router.get('/dashboard/rooms/:filter', requireLogin, async (req, res) => {
 router.get('/dashboard/weddings/:filter', requireLogin, async (req, res) => {
   const filter = dashboardWeddingFilters[req.params.filter];
   if (!filter) return res.redirect('/dashboard');
+  if (!['all','upcoming'].includes(req.params.filter) && !['manager','executive'].includes(req.session.user.role)) {
+    return res.redirect('/dashboard');
+  }
   const [rows] = await pool.query(filter.sql);
   res.render('dashboard/detail', { user: req.session.user, title: filter.title, rows, type: 'weddings' });
 });
@@ -160,7 +166,7 @@ router.post('/bookings/:id/edit', requireLogin, async (req, res) => {
   res.redirect('/bookings');
 });
 
-router.post('/bookings/:id/delete', requireManager, async (req, res) => {
+router.post('/bookings/:id/delete', requireLogin, async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
   if (rows.length) {
     const b = rows[0];
@@ -235,7 +241,7 @@ router.post('/weddings/:id/edit', requireLogin, async (req, res) => {
   res.redirect('/weddings');
 });
 
-router.post('/weddings/:id/delete', requireManager, async (req, res) => {
+router.post('/weddings/:id/delete', requireLogin, async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM wedding_bookings WHERE id = ?', [req.params.id]);
   if (rows.length) {
     const w = rows[0];

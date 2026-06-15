@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
-const { requireManager, requireTA } = require('../middleware/auth');
+const { requireExecutive, requireTA } = require('../middleware/auth');
 const { auditLog } = require('../middleware/audit');
 const { stringify } = require('csv-stringify/sync');
 
@@ -87,17 +87,17 @@ router.post('/clock', async (req, res) => {
 
 // ─── Employee list (manager only) ────────────────────────────────────────────
 
-router.get('/attendance', requireManager, async (req, res) => {
+router.get('/attendance', requireExecutive, async (req, res) => {
   const [employees] = await pool.query('SELECT * FROM employees ORDER BY active DESC, name ASC');
   const [staff] = await pool.query('SELECT id, name, email, role, ta_access FROM users ORDER BY role DESC, name ASC');
   res.render('attendance/list', { user: req.session.user, employees, staff });
 });
 
-router.get('/attendance/employees/new', requireManager, (req, res) => {
+router.get('/attendance/employees/new', requireExecutive, (req, res) => {
   res.render('attendance/employee-form', { user: req.session.user, employee: null, error: null });
 });
 
-router.post('/attendance/employees/new', requireManager, async (req, res) => {
+router.post('/attendance/employees/new', requireExecutive, async (req, res) => {
   const { name, phone, clock_code } = req.body;
   if (!name || !clock_code) {
     return res.render('attendance/employee-form', { user: req.session.user, employee: req.body, error: 'Name and clock code are required.' });
@@ -114,13 +114,13 @@ router.post('/attendance/employees/new', requireManager, async (req, res) => {
   }
 });
 
-router.get('/attendance/employees/:id/edit', requireManager, async (req, res) => {
+router.get('/attendance/employees/:id/edit', requireExecutive, async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM employees WHERE id = ?', [req.params.id]);
   if (!rows.length) return res.redirect('/attendance');
   res.render('attendance/employee-form', { user: req.session.user, employee: rows[0], error: null });
 });
 
-router.post('/attendance/employees/:id/edit', requireManager, async (req, res) => {
+router.post('/attendance/employees/:id/edit', requireExecutive, async (req, res) => {
   const { name, phone, clock_code, active } = req.body;
   await pool.query(
     'UPDATE employees SET name=?, phone=?, clock_code=?, active=? WHERE id=?',
@@ -132,7 +132,7 @@ router.post('/attendance/employees/:id/edit', requireManager, async (req, res) =
 
 // ─── Staff T&A access (manager only) ─────────────────────────────────────────
 
-router.post('/attendance/staff/:id/access', requireManager, async (req, res) => {
+router.post('/attendance/staff/:id/access', requireExecutive, async (req, res) => {
   const { ta_access } = req.body;
   await pool.query('UPDATE users SET ta_access = ? WHERE id = ?', [ta_access ? 1 : 0, req.params.id]);
   const [rows] = await pool.query('SELECT name FROM users WHERE id = ?', [req.params.id]);
@@ -161,7 +161,7 @@ router.get('/attendance/records', requireTA, async (req, res) => {
 
 // ─── Reports (manager only) ───────────────────────────────────────────────────
 
-router.get('/attendance/reports', requireManager, async (req, res) => {
+router.get('/attendance/reports', requireExecutive, async (req, res) => {
   const now = nowSAST();
   const year  = parseInt(req.query.year)  || now.getFullYear();
   const month = parseInt(req.query.month) || (now.getMonth() + 1);

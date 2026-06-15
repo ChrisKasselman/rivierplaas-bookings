@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
-const { requireManager } = require('../middleware/auth');
+const { requireExecutive } = require('../middleware/auth');
 const { auditLog } = require('../middleware/audit');
 
-router.get('/loans', requireManager, async (req, res) => {
+router.get('/loans', requireExecutive, async (req, res) => {
   const [loans] = await pool.query('SELECT * FROM staff_loans ORDER BY date_given DESC');
   const [staff] = await pool.query('SELECT id, name FROM users ORDER BY name');
   const [employees] = await pool.query('SELECT id, name FROM employees WHERE active=1 ORDER BY name');
@@ -12,13 +12,13 @@ router.get('/loans', requireManager, async (req, res) => {
   res.render('loans/list', { user: req.session.user, loans, staff, employees, totalOutstanding });
 });
 
-router.get('/loans/new', requireManager, async (req, res) => {
+router.get('/loans/new', requireExecutive, async (req, res) => {
   const [staff] = await pool.query('SELECT id, name FROM users ORDER BY name');
   const [employees] = await pool.query('SELECT id, name FROM employees WHERE active=1 ORDER BY name');
   res.render('loans/form', { user: req.session.user, loan: null, staff, employees, error: null });
 });
 
-router.post('/loans/new', requireManager, async (req, res) => {
+router.post('/loans/new', requireExecutive, async (req, res) => {
   const { person_type, person_id, amount, date_given, repayment_amount, notes } = req.body;
   if (!person_type || !person_id || !amount || !date_given) {
     const [staff] = await pool.query('SELECT id, name FROM users ORDER BY name');
@@ -49,7 +49,7 @@ router.post('/loans/new', requireManager, async (req, res) => {
   }
 });
 
-router.get('/loans/:id/edit', requireManager, async (req, res) => {
+router.get('/loans/:id/edit', requireExecutive, async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM staff_loans WHERE id = ?', [req.params.id]);
   if (!rows.length) return res.redirect('/loans');
   const [staff] = await pool.query('SELECT id, name FROM users ORDER BY name');
@@ -57,7 +57,7 @@ router.get('/loans/:id/edit', requireManager, async (req, res) => {
   res.render('loans/form', { user: req.session.user, loan: rows[0], staff, employees, error: null });
 });
 
-router.post('/loans/:id/edit', requireManager, async (req, res) => {
+router.post('/loans/:id/edit', requireExecutive, async (req, res) => {
   const { amount, date_given, repayment_amount, balance, notes } = req.body;
   await pool.query(
     'UPDATE staff_loans SET amount=?, date_given=?, repayment_amount=?, balance=?, notes=? WHERE id=?',
@@ -67,7 +67,7 @@ router.post('/loans/:id/edit', requireManager, async (req, res) => {
   res.redirect('/loans');
 });
 
-router.post('/loans/:id/delete', requireManager, async (req, res) => {
+router.post('/loans/:id/delete', requireExecutive, async (req, res) => {
   const [rows] = await pool.query('SELECT person_name, amount FROM staff_loans WHERE id = ?', [req.params.id]);
   if (rows.length) {
     await auditLog(req, 'DELETE_LOAN', 'staff_loan', req.params.id, `Deleted loan for ${rows[0].person_name}: R${rows[0].amount}`);
