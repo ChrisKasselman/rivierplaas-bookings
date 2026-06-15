@@ -89,6 +89,42 @@ async function initDB() {
     `);
 
     await conn.query(`
+      CREATE TABLE IF NOT EXISTS viewings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        viewing_date DATE NOT NULL,
+        viewing_time TIME,
+        firstname VARCHAR(100) NOT NULL,
+        surname VARCHAR(100) NOT NULL,
+        cell VARCHAR(30),
+        email VARCHAR(150),
+        status ENUM('Scheduled','Completed','Cancelled') DEFAULT 'Scheduled',
+        outcome ENUM('Pending','Interested','Booked','Not interested') DEFAULT 'Pending',
+        notes TEXT,
+        created_by INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS staff_loans (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        person_type ENUM('staff','employee') NOT NULL,
+        person_id INT NOT NULL,
+        person_name VARCHAR(100) NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        date_given DATE NOT NULL,
+        repayment_amount DECIMAL(10,2) DEFAULT 0,
+        balance DECIMAL(10,2) NOT NULL,
+        notes TEXT,
+        created_by INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+
+    await conn.query(`
       CREATE TABLE IF NOT EXISTS audit_log (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT,

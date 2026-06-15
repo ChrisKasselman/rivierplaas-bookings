@@ -98,7 +98,7 @@ router.get('/dashboard/weddings/:filter', requireLogin, async (req, res) => {
 // ─── Room Bookings ───────────────────────────────────────────────────────────
 
 router.get('/bookings', requireLogin, async (req, res) => {
-  const { search = '', venue = '', payment = '' } = req.query;
+  const { search = '', venue = '', payment = '', sort = 'checkin', dir = 'desc' } = req.query;
   let sql = 'SELECT * FROM bookings WHERE 1=1';
   const params = [];
   if (search) { sql += ' AND (firstname LIKE ? OR surname LIKE ? OR email LIKE ? OR cell LIKE ?)'; const s = `%${search}%`; params.push(s,s,s,s); }
@@ -108,9 +108,12 @@ router.get('/bookings', requireLogin, async (req, res) => {
   else if (payment === 'cancelled') { sql += ' AND cancelled = 1'; }
   else if (payment === 'deposit') { sql += ' AND deposit_paid = 1 AND fully_paid = 0'; }
   else if (payment === 'unpaid') { sql += ' AND deposit_paid = 0 AND fully_paid = 0'; }
-  sql += ' ORDER BY checkin DESC';
+  const sortCols = { checkin: 'checkin', checkout: 'checkout', name: 'surname' };
+  const sortCol = sortCols[sort] || 'checkin';
+  const sortDir = dir === 'asc' ? 'ASC' : 'DESC';
+  sql += ` ORDER BY ${sortCol} ${sortDir}`;
   const [bookings] = await pool.query(sql, params);
-  res.render('bookings/list', { user: req.session.user, bookings, search, venue, payment });
+  res.render('bookings/list', { user: req.session.user, bookings, search, venue, payment, sort, dir });
 });
 
 router.get('/bookings/new', requireLogin, (req, res) => {
@@ -170,7 +173,7 @@ router.post('/bookings/:id/delete', requireManager, async (req, res) => {
 // ─── Wedding Bookings ────────────────────────────────────────────────────────
 
 router.get('/weddings', requireLogin, async (req, res) => {
-  const { search = '', venue = '', payment = '' } = req.query;
+  const { search = '', venue = '', payment = '', sort = 'event_date', dir = 'desc' } = req.query;
   let sql = 'SELECT * FROM wedding_bookings WHERE 1=1';
   const params = [];
   if (search) { sql += ' AND (firstname LIKE ? OR surname LIKE ? OR email LIKE ? OR cell LIKE ?)'; const s = `%${search}%`; params.push(s,s,s,s); }
@@ -180,9 +183,12 @@ router.get('/weddings', requireLogin, async (req, res) => {
   else if (payment === 'cancelled') { sql += ' AND cancelled = 1'; }
   else if (payment === 'deposit') { sql += ' AND deposit_paid = 1 AND fully_paid = 0'; }
   else if (payment === 'unpaid') { sql += ' AND deposit_paid = 0 AND fully_paid = 0'; }
-  sql += ' ORDER BY event_date DESC';
+  const sortCols = { event_date: 'event_date', event_end_date: 'event_end_date', name: 'surname' };
+  const sortCol = sortCols[sort] || 'event_date';
+  const sortDir = dir === 'asc' ? 'ASC' : 'DESC';
+  sql += ` ORDER BY ${sortCol} ${sortDir}`;
   const [weddings] = await pool.query(sql, params);
-  res.render('weddings/list', { user: req.session.user, weddings, search, venue, payment });
+  res.render('weddings/list', { user: req.session.user, weddings, search, venue, payment, sort, dir });
 });
 
 router.get('/weddings/new', requireLogin, (req, res) => {
@@ -251,12 +257,34 @@ router.get('/rooms', requireLogin, async (req, res) => {
   else if (venue === 'Honeymoon Suite') rooms = [8,9];
 
   const [booked] = await pool.query(
-    'SELECT room, firstname, surname FROM bookings WHERE venue=? AND checkin<=? AND checkout>?',
+    'SELECT room, firstname, surname FROM bookings WHERE venue=? AND checkin<=? AND checkout>? AND cancelled=0',
     [venue, date, date]
   );
   const bookedMap = {};
   booked.forEach(b => { bookedMap[b.room] = `${b.firstname} ${b.surname}`; });
   res.render('rooms', { user: req.session.user, date, venue, rooms, bookedMap });
+});
+
+// ─── Wedding venue availability ───────────────────────────────────────────────
+
+router.get('/wedding-availability', requireLogin, async (req, res) => {
+  const date = req.query.date || new Date().toISOString().split('T')[0];
+
+  const [ommi] = await pool.query(
+    'SELECT firstname, surname, event_date, event_end_date, guests FROM wedding_bookings WHERE venue="Ommidraai Wedding Venue" AND event_date<=? AND event_end_date>=? AND cancelled=0',
+    [date, date]
+  );
+  const [innie] = await pool.query(
+    'SELECT firstname, surname, event_date, event_end_date, guests FROM wedding_bookings WHERE venue="Inniebos Wedding Venue" AND event_date<=? AND event_end_date>=? AND cancelled=0',
+    [date, date]
+  );
+
+  res.render('wedding-availability', {
+    user: req.session.user,
+    date,
+    ommi: ommi[0] || null,
+    innie: innie[0] || null
+  });
 });
 
 // ─── Export ──────────────────────────────────────────────────────────────────

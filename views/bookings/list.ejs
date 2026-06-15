@@ -32,8 +32,8 @@
         <th>Contact</th>
         <th>Venue</th>
         <th>Room</th>
-        <th>Check-in</th>
-        <th>Check-out</th>
+        <th><a href="?search=<%= search %>&venue=<%= venue %>&payment=<%= payment %>&sort=checkin&dir=<%= (sort==='checkin' && dir==='asc') ? 'desc' : 'asc' %>" class="sort-link">Check-in <%= sort==='checkin' ? (dir==='asc' ? '▲' : '▼') : '' %></a></th>
+        <th><a href="?search=<%= search %>&venue=<%= venue %>&payment=<%= payment %>&sort=checkout&dir=<%= (sort==='checkout' && dir==='asc') ? 'desc' : 'asc' %>" class="sort-link">Check-out <%= sort==='checkout' ? (dir==='asc' ? '▲' : '▼') : '' %></a></th>
         <th>Payment</th>
         <th>Actions</th>
       </tr>

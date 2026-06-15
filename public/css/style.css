@@ -351,3 +351,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 @media (max-width: 900px) {
   .charts-row { grid-template-columns: 1fr; }
 }
+
+/* ── Sortable column headers ───────────────────────────── */
+.sort-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sort-link:hover { color: #4f7942; }

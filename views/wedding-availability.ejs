@@ -1,0 +1,45 @@
+<%- include('layout-top', { title: 'Wedding Venue Availability', page: 'wedding-availability', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Wedding venue availability</h1>
+</div>
+
+<form method="GET" action="/wedding-availability" class="filter-bar">
+  <input type="date" name="date" value="<%= date %>">
+  <button type="submit" class="btn btn-secondary">Check</button>
+</form>
+
+<div class="rooms-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))">
+  <div class="room-card <%= ommi ? 'booked' : 'available' %>" style="text-align:left;padding:1.25rem">
+    <div class="room-number" style="font-size:1.1rem">Ommidraai Wedding Venue</div>
+    <div class="room-status-label"><%= ommi ? 'Booked' : 'Available' %></div>
+    <% if(ommi) { %>
+      <div class="room-guest" style="margin-top:0.5rem">
+        <%= ommi.firstname %> <%= ommi.surname %><br>
+        <span class="muted" style="font-size:0.8rem">
+          <%= new Date(ommi.event_date).toLocaleDateString('en-ZA') %> – <%= new Date(ommi.event_end_date).toLocaleDateString('en-ZA') %>
+          · <%= ommi.guests %> guests
+        </span>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="room-card <%= innie ? 'booked' : 'available' %>" style="text-align:left;padding:1.25rem">
+    <div class="room-number" style="font-size:1.1rem">Inniebos Wedding Venue</div>
+    <div class="room-status-label"><%= innie ? 'Booked' : 'Available' %></div>
+    <% if(innie) { %>
+      <div class="room-guest" style="margin-top:0.5rem">
+        <%= innie.firstname %> <%= innie.surname %><br>
+        <span class="muted" style="font-size:0.8rem">
+          <%= new Date(innie.event_date).toLocaleDateString('en-ZA') %> – <%= new Date(innie.event_end_date).toLocaleDateString('en-ZA') %>
+          · <%= innie.guests %> guests
+        </span>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="rooms-legend">
+  <span class="legend-item"><span class="legend-dot available"></span> Available</span>
+  <span class="legend-item"><span class="legend-dot booked"></span> Booked</span>
+</div>
+<%- include('layout-bottom') %>

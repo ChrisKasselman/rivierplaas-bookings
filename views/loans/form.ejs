@@ -1,0 +1,101 @@
+<%- include('../layout-top', { title: loan && loan.id ? 'Edit Loan' : 'New Loan', page: 'loans', user }) %>
+<div class="page-header">
+  <h1 class="page-title"><%= loan && loan.id ? 'Edit loan' : 'New loan' %></h1>
+  <a href="/loans" class="btn btn-ghost">← Back</a>
+</div>
+
+<% if(error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<div class="form-card">
+  <form method="POST" action="/loans/<%= loan && loan.id ? loan.id + '/edit' : 'new' %>">
+
+    <% if(!loan || !loan.id) { %>
+    <div class="form-section-title">Person</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Type <span class="req">*</span></label>
+        <select name="person_type" id="person_type" onchange="togglePersonList()" required>
+          <option value="staff">Staff (app users)</option>
+          <option value="employee">Employee (Time &amp; Attendance)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Person <span class="req">*</span></label>
+        <select name="person_id" id="staff_select" required>
+          <% staff.forEach(s => { %>
+            <option value="<%= s.id %>"><%= s.name %></option>
+          <% }) %>
+        </select>
+        <select name="person_id_emp" id="employee_select" style="display:none">
+          <% employees.forEach(e => { %>
+            <option value="<%= e.id %>"><%= e.name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="form-section-title">Person</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Name</label>
+        <input type="text" value="<%= loan.person_name %>" disabled style="background:#f9fafb">
+      </div>
+    </div>
+    <% } %>
+
+    <div class="form-section-title">Loan details</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Loan amount (R) <span class="req">*</span></label>
+        <input type="number" step="0.01" name="amount" value="<%= loan ? loan.amount||'' : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Date given <span class="req">*</span></label>
+        <input type="date" name="date_given" value="<%= loan ? (loan.date_given ? new Date(loan.date_given).toISOString().split('T')[0] : '') : '' %>" required>
+      </div>
+      <div class="form-group">
+        <label>Repayment amount per period (R)</label>
+        <input type="number" step="0.01" name="repayment_amount" value="<%= loan ? loan.repayment_amount||'' : '' %>" placeholder="e.g. monthly deduction">
+      </div>
+      <% if(loan && loan.id) { %>
+      <div class="form-group">
+        <label>Balance remaining (R) <span class="req">*</span></label>
+        <input type="number" step="0.01" name="balance" value="<%= loan.balance||'' %>" required>
+        <div class="field-hint">Update this manually as repayments are made.</div>
+      </div>
+      <% } %>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+      <label>Notes</label>
+      <textarea name="notes" rows="3" placeholder="Any additional notes…"><%= loan ? loan.notes||'' : '' %></textarea>
+    </div>
+
+    <div class="form-footer">
+      <a href="/loans" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save loan</button>
+    </div>
+  </form>
+</div>
+
+<% if(!loan || !loan.id) { %>
+<script>
+function togglePersonList() {
+  const type = document.getElementById('person_type').value;
+  const staffSel = document.getElementById('staff_select');
+  const empSel = document.getElementById('employee_select');
+  if (type === 'staff') {
+    staffSel.style.display = '';
+    staffSel.name = 'person_id';
+    empSel.style.display = 'none';
+    empSel.name = 'person_id_emp';
+  } else {
+    empSel.style.display = '';
+    empSel.name = 'person_id';
+    staffSel.style.display = 'none';
+    staffSel.name = 'person_id_emp';
+  }
+}
+</script>
+<% } %>
+<%- include('../layout-bottom') %>

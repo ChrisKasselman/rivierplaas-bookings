@@ -30,8 +30,8 @@
         <th>Client</th>
         <th>Contact</th>
         <th>Venue</th>
-        <th>Event date</th>
-        <th>End date</th>
+        <th><a href="?search=<%= search %>&venue=<%= venue %>&payment=<%= payment %>&sort=event_date&dir=<%= (sort==='event_date' && dir==='asc') ? 'desc' : 'asc' %>" class="sort-link">Event date <%= sort==='event_date' ? (dir==='asc' ? '▲' : '▼') : '' %></a></th>
+        <th><a href="?search=<%= search %>&venue=<%= venue %>&payment=<%= payment %>&sort=event_end_date&dir=<%= (sort==='event_end_date' && dir==='asc') ? 'desc' : 'asc' %>" class="sort-link">End date <%= sort==='event_end_date' ? (dir==='asc' ? '▲' : '▼') : '' %></a></th>
         <th>Guests</th>
         <th>Payment</th>
         <th>Actions</th>

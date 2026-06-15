@@ -33,6 +33,14 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14"/><path d="M3 21h18M9 21V12h6v9"/></svg>
           Room availability
         </a>
+        <a href="/wedding-availability" class="nav-item <%= page==='wedding-availability'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c-4-4-8-7.5-8-11a8 8 0 0 1 16 0c0 3.5-4 7-8 11z"/><circle cx="12" cy="10" r="2"/></svg>
+          Wedding availability
+        </a>
+        <a href="/viewings" class="nav-item <%= page==='viewings'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          Viewings
+        </a>
         <% if(user.role === 'manager' || user.ta_access) { %>
         <a href="/attendance/records" class="nav-item <%= page==='attendance'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -44,6 +52,10 @@
         <a href="/attendance" class="nav-item <%= page==='attendance'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           T&A Management
+        </a>
+        <a href="/loans" class="nav-item <%= page==='loans'?'active':'' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Staff Loans
         </a>
         <a href="/admin" class="nav-item <%= page==='admin'?'active':'' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zM4 20a8 8 0 0 1 16 0"/></svg>

@@ -1,0 +1,76 @@
+<%- include('../layout-top', { title: 'Viewings', page: 'viewings', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Viewings</h1>
+  <a href="/viewings/new" class="btn btn-primary">+ New viewing</a>
+</div>
+
+<form method="GET" action="/viewings" class="filter-bar">
+  <select name="status" onchange="this.form.submit()">
+    <option value="">All statuses</option>
+    <option value="Scheduled" <%= status==='Scheduled'?'selected':'' %>>Scheduled</option>
+    <option value="Completed" <%= status==='Completed'?'selected':'' %>>Completed</option>
+    <option value="Cancelled" <%= status==='Cancelled'?'selected':'' %>>Cancelled</option>
+  </select>
+  <select name="outcome" onchange="this.form.submit()">
+    <option value="">All outcomes</option>
+    <option value="Pending" <%= outcome==='Pending'?'selected':'' %>>Pending</option>
+    <option value="Interested" <%= outcome==='Interested'?'selected':'' %>>Interested</option>
+    <option value="Booked" <%= outcome==='Booked'?'selected':'' %>>Booked</option>
+    <option value="Not interested" <%= outcome==='Not interested'?'selected':'' %>>Not interested</option>
+  </select>
+  <a href="/viewings" class="btn btn-ghost">Clear</a>
+</form>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>Status</th>
+        <th>Outcome</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(viewings.length === 0) { %>
+      <tr><td colspan="8" class="empty-row">No viewings found.</td></tr>
+      <% } %>
+      <% viewings.forEach(v => { %>
+      <tr class="<%= v.status === 'Cancelled' ? 'row-cancelled' : '' %>">
+        <td><%= new Date(v.viewing_date).toLocaleDateString('en-ZA') %></td>
+        <td><%= v.viewing_time ? v.viewing_time.substring(0,5) : '—' %></td>
+        <td><strong><%= v.firstname %> <%= v.surname %></strong></td>
+        <td class="contact-cell">
+          <span><%= v.cell || '—' %></span>
+          <% if(v.email) { %><span class="muted"><%= v.email %></span><% } %>
+        </td>
+        <td>
+          <% if(v.status === 'Scheduled') { %><span class="badge badge-warning">Scheduled</span>
+          <% } else if(v.status === 'Completed') { %><span class="badge badge-success">Completed</span>
+          <% } else { %><span class="badge badge-cancelled">Cancelled</span><% } %>
+        </td>
+        <td>
+          <% if(v.outcome === 'Booked') { %><span class="badge badge-success">Booked</span>
+          <% } else if(v.outcome === 'Interested') { %><span class="badge badge-nopayment">Interested</span>
+          <% } else if(v.outcome === 'Not interested') { %><span class="badge badge-danger">Not interested</span>
+          <% } else { %><span class="badge badge-venue">Pending</span><% } %>
+        </td>
+        <td class="audit-detail"><%= v.notes || '—' %></td>
+        <td class="actions-cell">
+          <a href="/viewings/<%= v.id %>/edit" class="btn btn-sm">Edit</a>
+          <% if(user.role === 'manager') { %>
+          <form method="POST" action="/viewings/<%= v.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this viewing?')">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../layout-bottom') %>

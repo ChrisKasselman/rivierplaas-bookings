@@ -1,0 +1,56 @@
+<%- include('../layout-top', { title: 'Staff Loans', page: 'loans', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Staff loans</h1>
+  <a href="/loans/new" class="btn btn-primary">+ New loan</a>
+</div>
+
+<div class="attendance-summary">
+  <span><strong><%= loans.length %></strong> loans</span>
+  <span>Total outstanding: <strong>R <%= totalOutstanding %></strong></span>
+</div>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Person</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date given</th>
+        <th>Repayment / period</th>
+        <th>Balance</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(loans.length === 0) { %>
+      <tr><td colspan="8" class="empty-row">No loans recorded.</td></tr>
+      <% } %>
+      <% loans.forEach(l => { %>
+      <tr class="<%= parseFloat(l.balance) <= 0 ? 'row-cancelled' : '' %>">
+        <td><strong><%= l.person_name %></strong></td>
+        <td><span class="badge <%= l.person_type === 'staff' ? 'badge-warning' : 'badge-venue' %>"><%= l.person_type === 'staff' ? 'Staff' : 'Employee' %></span></td>
+        <td>R <%= parseFloat(l.amount).toFixed(2) %></td>
+        <td><%= new Date(l.date_given).toLocaleDateString('en-ZA') %></td>
+        <td><%= l.repayment_amount > 0 ? 'R ' + parseFloat(l.repayment_amount).toFixed(2) : '—' %></td>
+        <td>
+          <% if(parseFloat(l.balance) <= 0) { %>
+            <span class="badge badge-success">Paid off</span>
+          <% } else { %>
+            <strong>R <%= parseFloat(l.balance).toFixed(2) %></strong>
+          <% } %>
+        </td>
+        <td class="audit-detail"><%= l.notes || '—' %></td>
+        <td class="actions-cell">
+          <a href="/loans/<%= l.id %>/edit" class="btn btn-sm">Edit</a>
+          <form method="POST" action="/loans/<%= l.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this loan record?')">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../layout-bottom') %>
