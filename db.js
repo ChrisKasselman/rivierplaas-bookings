@@ -59,7 +59,7 @@ async function initDB() {
         cancelled TINYINT(1) DEFAULT 0,
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
@@ -82,7 +82,7 @@ async function initDB() {
         cancelled TINYINT(1) DEFAULT 0,
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
@@ -120,7 +120,7 @@ async function initDB() {
         outcome ENUM('Pending','Interested','Booked','Not interested') DEFAULT 'Pending',
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
     `);
@@ -137,7 +137,7 @@ async function initDB() {
         balance DECIMAL(10,2) NOT NULL,
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
