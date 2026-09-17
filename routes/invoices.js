@@ -87,8 +87,8 @@ router.post('/invoices/new', requireManager, async (req, res) => {
     await auditLog(req, 'CREATE_INVOICE', 'invoice', result.insertId, `Created ${invoice_type} invoice #${invoice_number} for ${firstname} ${surname} — R${amount}`);
     res.redirect(`/invoices/${result.insertId}`);
   } catch (err) {
-    console.error(err);
-    res.render('invoices/form', { user: req.session.user, booking: req.body, booking_type: booking_type || 'room', error: 'Could not save invoice. Please try again.' });
+    console.error('INVOICE SAVE ERROR:', err.message, err.code, err.sqlMessage);
+    res.render('invoices/form', { user: req.session.user, booking: req.body, booking_type: booking_type || 'room', error: `Could not save invoice: ${err.message}` });
   }
 });
 
