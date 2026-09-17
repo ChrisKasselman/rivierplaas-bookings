@@ -68,6 +68,9 @@
         </td>
         <td class="actions-cell">
           <a href="/bookings/<%= b.id %>/edit" class="btn btn-sm">Edit</a>
+          <% if(user.role === 'manager' || user.role === 'executive') { %>
+          <a href="/invoices/new?booking_type=room&booking_id=<%= b.id %>" class="btn btn-sm btn-secondary">Invoice</a>
+          <% } %>
           <form method="POST" action="/bookings/<%= b.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this booking?')">
             <button type="submit" class="btn btn-sm btn-danger">Delete</button>
           </form>

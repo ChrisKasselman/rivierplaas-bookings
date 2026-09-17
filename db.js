@@ -89,6 +89,26 @@ async function initDB() {
     `);
 
     await conn.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        invoice_number VARCHAR(50) UNIQUE NOT NULL,
+        booking_type ENUM('room','wedding') NOT NULL,
+        booking_id INT NOT NULL,
+        invoice_type ENUM('deposit','final') NOT NULL,
+        firstname VARCHAR(100) NOT NULL,
+        surname VARCHAR(100) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        description TEXT,
+        status ENUM('draft','sent','paid') DEFAULT 'draft',
+        sent_at DATETIME,
+        created_by INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (created_by) REFERENCES users(id)
+      )
+    `);
+
+    await conn.query(`
       CREATE TABLE IF NOT EXISTS viewings (
         id INT AUTO_INCREMENT PRIMARY KEY,
         viewing_date DATE NOT NULL,

@@ -24,6 +24,7 @@ app.use('/', require('./routes/admin'));
 app.use('/', require('./routes/attendance'));
 app.use('/', require('./routes/viewings'));
 app.use('/', require('./routes/loans'));
+app.use('/', require('./routes/invoices'));
 
 app.get('/', (req, res) => res.redirect('/dashboard'));
 

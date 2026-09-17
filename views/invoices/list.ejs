@@ -1,0 +1,66 @@
+<%- include('../layout-top', { title: 'Invoices', page: 'invoices', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Invoices</h1>
+  <a href="/invoices/new" class="btn btn-primary">+ New invoice</a>
+</div>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Invoice #</th>
+        <th>Guest</th>
+        <th>Type</th>
+        <th>Booking</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if(!invoices.length) { %>
+        <tr><td colspan="8" class="empty-row">No invoices yet.</td></tr>
+      <% } %>
+      <% invoices.forEach(inv => { %>
+      <tr>
+        <td><strong><%= inv.invoice_number %></strong></td>
+        <td><%= inv.firstname %> <%= inv.surname %><div class="muted" style="font-size:0.78rem"><%= inv.email %></div></td>
+        <td>
+          <% if(inv.invoice_type === 'deposit') { %>
+            <span class="badge badge-warning">Deposit</span>
+          <% } else { %>
+            <span class="badge badge-success">Final</span>
+          <% } %>
+        </td>
+        <td><span class="badge badge-venue"><%= inv.booking_type === 'room' ? 'Room' : 'Wedding' %></span></td>
+        <td><strong>R <%= parseFloat(inv.amount).toFixed(2) %></strong></td>
+        <td>
+          <% if(inv.status === 'paid') { %>
+            <span class="badge badge-success">Paid</span>
+          <% } else if(inv.status === 'sent') { %>
+            <span class="badge badge-nopayment">Sent</span>
+          <% } else { %>
+            <span class="badge badge-cancelled">Draft</span>
+          <% } %>
+        </td>
+        <td class="muted" style="font-size:0.82rem"><%= new Date(inv.created_at).toLocaleDateString('en-ZA') %></td>
+        <td class="actions-cell">
+          <a href="/invoices/<%= inv.id %>" class="btn btn-sm">View</a>
+          <a href="/invoices/<%= inv.id %>/pdf" class="btn btn-sm">↓ Invoice</a>
+          <a href="/invoices/<%= inv.id %>/guest-directory" class="btn btn-sm">↓ Directory</a>
+          <% if(inv.status !== 'paid') { %>
+          <form method="POST" action="/invoices/<%= inv.id %>/paid" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Mark as paid?')">Mark paid</button>
+          </form>
+          <% } %>
+          <form method="POST" action="/invoices/<%= inv.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this invoice?')">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../layout-bottom') %>

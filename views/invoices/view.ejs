@@ -1,0 +1,72 @@
+<%- include('../layout-top', { title: 'Invoice ' + invoice.invoice_number, page: 'invoices', user }) %>
+<div class="page-header">
+  <h1 class="page-title">Invoice <%= invoice.invoice_number %></h1>
+  <div style="display:flex;gap:0.5rem">
+    <a href="/invoices" class="btn btn-ghost">← Back</a>
+    <a href="/invoices/<%= invoice.id %>/pdf" class="btn btn-secondary">↓ Invoice PDF</a>
+    <a href="/invoices/<%= invoice.id %>/guest-directory" class="btn btn-secondary">↓ Guest Directory PDF</a>
+    <% if(invoice.status !== 'paid') { %>
+    <form method="POST" action="/invoices/<%= invoice.id %>/send" style="display:inline">
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Send invoice to <%= invoice.email %>?')">
+        ✉ Send to guest
+      </button>
+    </form>
+    <% } %>
+  </div>
+</div>
+
+<% if(typeof sent !== 'undefined' && sent == 1) { %>
+  <div class="alert-success" style="margin-bottom:1rem">Invoice sent successfully to <%= invoice.email %>.</div>
+<% } %>
+<% if(typeof error !== 'undefined' && error === 'email') { %>
+  <div class="alert alert-error" style="margin-bottom:1rem">Failed to send email. Please check your Gmail App Password in Railway environment variables.</div>
+<% } %>
+
+<div class="form-card" style="max-width:680px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+    <div>
+      <div class="muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Status</div>
+      <% if(invoice.status === 'paid') { %>
+        <span class="badge badge-success" style="font-size:0.9rem">Paid</span>
+      <% } else if(invoice.status === 'sent') { %>
+        <span class="badge badge-nopayment" style="font-size:0.9rem">Sent <%= invoice.sent_at ? '· ' + new Date(invoice.sent_at).toLocaleDateString('en-ZA') : '' %></span>
+      <% } else { %>
+        <span class="badge badge-cancelled" style="font-size:0.9rem">Draft</span>
+      <% } %>
+    </div>
+    <div>
+      <div class="muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Type</div>
+      <span class="badge <%= invoice.invoice_type==='deposit'?'badge-warning':'badge-success' %>" style="font-size:0.9rem">
+        <%= invoice.invoice_type === 'deposit' ? 'Deposit invoice' : 'Final invoice' %>
+      </span>
+    </div>
+    <div>
+      <div class="muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Guest</div>
+      <strong><%= invoice.firstname %> <%= invoice.surname %></strong><br>
+      <span class="muted"><%= invoice.email %></span>
+    </div>
+    <div>
+      <div class="muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Amount</div>
+      <strong style="font-size:1.4rem;color:#4f7942">R <%= parseFloat(invoice.amount).toFixed(2) %></strong>
+    </div>
+    <div>
+      <div class="muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Description</div>
+      <%= invoice.description || '—' %>
+    </div>
+    <div>
+      <div class="muted" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Booking type</div>
+      <span class="badge badge-venue"><%= invoice.booking_type === 'room' ? 'Room booking' : 'Wedding booking' %></span>
+    </div>
+  </div>
+  <% if(invoice.status !== 'paid') { %>
+  <div style="border-top:1px solid #e5e7eb;padding-top:1rem;display:flex;gap:0.5rem">
+    <form method="POST" action="/invoices/<%= invoice.id %>/paid">
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Mark this invoice as paid?')">Mark as paid</button>
+    </form>
+    <form method="POST" action="/invoices/<%= invoice.id %>/delete" onsubmit="return confirm('Delete this invoice?')">
+      <button type="submit" class="btn btn-danger">Delete invoice</button>
+    </form>
+  </div>
+  <% } %>
+</div>
+<%- include('../layout-bottom') %>
