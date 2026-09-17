@@ -59,7 +59,7 @@ async function initDB() {
         cancelled TINYINT(1) DEFAULT 0,
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
@@ -82,7 +82,7 @@ async function initDB() {
         cancelled TINYINT(1) DEFAULT 0,
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
@@ -93,7 +93,7 @@ async function initDB() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         invoice_number VARCHAR(50) UNIQUE NOT NULL,
         booking_type ENUM('room','wedding') NOT NULL,
-        booking_id INT NOT NULL,
+        booking_id INT DEFAULT NULL,
         invoice_type ENUM('deposit','final') NOT NULL,
         firstname VARCHAR(100) NOT NULL,
         surname VARCHAR(100) NOT NULL,
@@ -103,8 +103,7 @@ async function initDB() {
         status ENUM('draft','sent','paid') DEFAULT 'draft',
         sent_at DATETIME,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (created_by) REFERENCES users(id)
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -121,7 +120,7 @@ async function initDB() {
         outcome ENUM('Pending','Interested','Booked','Not interested') DEFAULT 'Pending',
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
     `);
@@ -138,7 +137,7 @@ async function initDB() {
         balance DECIMAL(10,2) NOT NULL,
         notes TEXT,
         created_by INT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id)
       )
