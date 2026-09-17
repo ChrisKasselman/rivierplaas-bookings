@@ -204,7 +204,6 @@ async function initDB() {
   }
 }
 
-module.exports = { pool, initDB };
 // Note: called separately after initDB for T&A tables
 async function initTADB() {
   const conn = await pool.getConnection();
