@@ -2,323 +2,249 @@ const fs = require('fs');
 const path = require('path');
 
 const BUSINESS = {
-  name:    'Rivierplaas',
-  address: 'End Langenhoven Street, Riversdale, Meyerton, 1961',
-  phone:   '083 320 3760',
-  email:   'payments.rivierplaas@gmail.com',
-  bank:    'FNB',
+  name:           'Rivierplaas',
+  address:        'End Langenhoven Street, Riversdale, Meyerton, 1961',
+  phone:          '083 320 3760',
+  email:          'payments.rivierplaas@gmail.com',
+  bank:           'FNB',
   account_holder: 'Rivierplaas',
   account_number: '63153487278',
   branch_code:    '250655',
 };
 
-function logoBase64() {
-  try {
-    const imgPath = path.join(__dirname, '../public/images/logo.jpg');
-    return 'data:image/jpeg;base64,' + fs.readFileSync(imgPath).toString('base64');
-  } catch { return ''; }
+const GREEN  = '#4f7942';
+const DARK   = '#1a1a2e';
+const GREY   = '#6b7280';
+const LGREY  = '#f3f4f6';
+const YELLOW = '#fefce8';
+const YBORDER= '#fde047';
+
+function logoPath() {
+  return path.join(__dirname, '../public/images/logo.jpg');
 }
 
-function generateInvoiceHTML(invoice) {
-  const logo = logoBase64();
-  const ref = `${invoice.firstname} ${invoice.surname}`.toUpperCase();
-  const dateStr = new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
-  const typeLabel = invoice.invoice_type === 'deposit' ? 'DEPOSIT INVOICE' : 'FINAL INVOICE';
-  const statusColor = invoice.invoice_type === 'deposit' ? '#d97706' : '#059669';
+// ─── Invoice PDF ──────────────────────────────────────────────────────────────
 
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #1a1a2e; background: #fff; padding: 40px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; border-bottom: 3px solid #4f7942; padding-bottom: 24px; }
-  .logo { width: 180px; }
-  .invoice-meta { text-align: right; }
-  .invoice-meta h1 { font-size: 22px; font-weight: 800; color: #4f7942; letter-spacing: 0.05em; }
-  .invoice-meta .type-badge { display: inline-block; background: ${statusColor}; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 20px; margin-top: 4px; }
-  .invoice-meta .inv-num { font-size: 12px; color: #6b7280; margin-top: 6px; }
-  .invoice-meta .inv-date { font-size: 12px; color: #6b7280; }
-  .parties { display: flex; justify-content: space-between; margin-bottom: 32px; }
-  .party { width: 48%; }
-  .party-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #9ca3af; text-transform: uppercase; margin-bottom: 8px; }
-  .party-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-  .party-detail { font-size: 12px; color: #4b5563; line-height: 1.6; }
-  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 0 0 24px; }
-  .items-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
-  .items-table th { background: #4f7942; color: #fff; padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .items-table td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-  .items-table tr:last-child td { border-bottom: none; }
-  .items-table .amount { text-align: right; font-weight: 600; }
-  .total-box { margin-left: auto; width: 260px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin-bottom: 32px; }
-  .total-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #4b5563; }
-  .total-row.final { font-size: 16px; font-weight: 800; color: #1a1a2e; border-top: 2px solid #4f7942; padding-top: 10px; margin-top: 10px; }
-  .payment-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px 20px; margin-bottom: 28px; }
-  .payment-box h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #4f7942; margin-bottom: 10px; }
-  .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
-  .payment-row { font-size: 12px; color: #374151; }
-  .payment-row span { font-weight: 600; }
-  .reference-box { background: #fefce8; border: 1px solid #fde047; border-radius: 8px; padding: 12px 20px; margin-bottom: 28px; font-size: 13px; }
-  .reference-box strong { color: #854d0e; }
-  .footer { border-top: 1px solid #e5e7eb; padding-top: 16px; text-align: center; font-size: 11px; color: #9ca3af; }
-</style>
-</head>
-<body>
+function generateInvoicePDF(invoice) {
+  return new Promise((resolve, reject) => {
+    const PDFDocument = require('pdfkit');
+    const chunks = [];
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    doc.on('data', c => chunks.push(c));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
 
-<div class="header">
-  <img src="${logo}" class="logo" alt="Rivierplaas">
-  <div class="invoice-meta">
-    <h1>INVOICE</h1>
-    <div class="type-badge">${typeLabel}</div>
-    <div class="inv-num">Invoice #${invoice.invoice_number}</div>
-    <div class="inv-date">Date: ${dateStr}</div>
-  </div>
-</div>
+    const W = doc.page.width - 100;
+    const today = new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+    const guestRef = `${invoice.firstname} ${invoice.surname}`.toUpperCase();
+    const typeLabel = invoice.invoice_type === 'deposit' ? 'DEPOSIT INVOICE' : 'FINAL INVOICE';
 
-<div class="parties">
-  <div class="party">
-    <div class="party-label">From</div>
-    <div class="party-name">${BUSINESS.name}</div>
-    <div class="party-detail">
-      ${BUSINESS.address}<br>
-      Tel: ${BUSINESS.phone}<br>
-      Email: ${BUSINESS.email}
-    </div>
-  </div>
-  <div class="party">
-    <div class="party-label">Invoice to</div>
-    <div class="party-name">${invoice.firstname} ${invoice.surname}</div>
-    <div class="party-detail">
-      ${invoice.email}<br>
-      Booking ref: ${ref}
-    </div>
-  </div>
-</div>
+    // Logo
+    try {
+      doc.image(logoPath(), 50, 40, { width: 130 });
+    } catch(e) {}
 
-<hr class="divider">
+    // Header right
+    doc.fillColor(GREEN).fontSize(22).font('Helvetica-Bold')
+       .text('INVOICE', 0, 45, { align: 'right' });
+    doc.fillColor(GREY).fontSize(10).font('Helvetica')
+       .text(typeLabel, 0, 72, { align: 'right' })
+       .text(`Invoice #${invoice.invoice_number}`, 0, 86, { align: 'right' })
+       .text(`Date: ${today}`, 0, 100, { align: 'right' });
 
-<table class="items-table">
-  <thead>
-    <tr>
-      <th>Description</th>
-      <th style="text-align:right">Amount</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>${invoice.description || (invoice.booking_type === 'room' ? 'Room booking' : 'Wedding venue booking')}</td>
-      <td class="amount">R ${parseFloat(invoice.amount).toFixed(2)}</td>
-    </tr>
-  </tbody>
-</table>
+    // Green line
+    doc.moveTo(50, 130).lineTo(545, 130).strokeColor(GREEN).lineWidth(3).stroke();
 
-<div class="total-box">
-  <div class="total-row final">
-    <span>${invoice.invoice_type === 'deposit' ? 'Deposit due' : 'Total due'}</span>
-    <span>R ${parseFloat(invoice.amount).toFixed(2)}</span>
-  </div>
-</div>
+    // From / To
+    doc.y = 145;
+    doc.fillColor(GREY).fontSize(8).font('Helvetica-Bold')
+       .text('FROM', 50, 145).text('INVOICE TO', 300, 145);
+    doc.fillColor(DARK).fontSize(12).font('Helvetica-Bold')
+       .text(BUSINESS.name, 50, 158).text(`${invoice.firstname} ${invoice.surname}`, 300, 158);
+    doc.fillColor(GREY).fontSize(9).font('Helvetica')
+       .text(BUSINESS.address, 50, 174, { width: 220 })
+       .text(`Tel: ${BUSINESS.phone}`, 50, 198)
+       .text(BUSINESS.email, 50, 210);
+    doc.fillColor(GREY).fontSize(9).font('Helvetica')
+       .text(invoice.email, 300, 174)
+       .text(`Booking ref: ${guestRef}`, 300, 186);
 
-<div class="payment-box">
-  <h3>Payment details</h3>
-  <div class="payment-grid">
-    <div class="payment-row">Bank: <span>${BUSINESS.bank}</span></div>
-    <div class="payment-row">Account holder: <span>${BUSINESS.account_holder}</span></div>
-    <div class="payment-row">Account number: <span>${BUSINESS.account_number}</span></div>
-    <div class="payment-row">Branch code: <span>${BUSINESS.branch_code}</span></div>
-  </div>
-</div>
+    // Divider
+    doc.moveTo(50, 235).lineTo(545, 235).strokeColor('#e5e7eb').lineWidth(1).stroke();
 
-<div class="reference-box">
-  ⚠️ <strong>Payment reference:</strong> Please use <strong>${ref}</strong> as your payment reference so we can identify your payment.
-</div>
+    // Items table header
+    doc.rect(50, 245, W, 24).fill(GREEN);
+    doc.fillColor('#fff').fontSize(9).font('Helvetica-Bold')
+       .text('DESCRIPTION', 60, 252)
+       .text('AMOUNT', 0, 252, { align: 'right', width: 535 });
 
-<div class="footer">
-  Thank you for choosing Rivierplaas. We look forward to hosting you.<br>
-  ${BUSINESS.name} · ${BUSINESS.address} · ${BUSINESS.phone}
-</div>
+    // Items row
+    doc.rect(50, 269, W, 30).fill(LGREY);
+    const desc = invoice.description || (invoice.booking_type === 'room' ? 'Room booking' : 'Wedding venue booking');
+    doc.fillColor(DARK).fontSize(10).font('Helvetica')
+       .text(desc, 60, 278, { width: 380 })
+       .text(`R ${parseFloat(invoice.amount).toFixed(2)}`, 0, 278, { align: 'right', width: 535 });
 
-</body>
-</html>`;
+    // Total box
+    const totalY = 320;
+    doc.rect(350, totalY, 195, 45).fill('#f9fafb').stroke('#e5e7eb');
+    doc.fillColor(GREY).fontSize(9).font('Helvetica')
+       .text(invoice.invoice_type === 'deposit' ? 'Deposit due:' : 'Total due:', 360, totalY + 8);
+    doc.fillColor(GREEN).fontSize(16).font('Helvetica-Bold')
+       .text(`R ${parseFloat(invoice.amount).toFixed(2)}`, 360, totalY + 22);
+
+    // Payment details box
+    const payY = 390;
+    doc.rect(50, payY, W, 90).fill('#f0fdf4').stroke('#86efac');
+    doc.fillColor(GREEN).fontSize(9).font('Helvetica-Bold')
+       .text('PAYMENT DETAILS', 65, payY + 10);
+    doc.fillColor(DARK).fontSize(9).font('Helvetica')
+       .text(`Bank: ${BUSINESS.bank}`, 65, payY + 25)
+       .text(`Account holder: ${BUSINESS.account_holder}`, 65, payY + 38)
+       .text(`Account number: ${BUSINESS.account_number}`, 65, payY + 51)
+       .text(`Branch code: ${BUSINESS.branch_code}`, 65, payY + 64);
+
+    // Reference box
+    const refY = 500;
+    doc.rect(50, refY, W, 36).fill(YELLOW).stroke(YBORDER);
+    doc.fillColor('#854d0e').fontSize(9).font('Helvetica-Bold')
+       .text('PAYMENT REFERENCE: ', 65, refY + 8, { continued: true });
+    doc.font('Helvetica')
+       .text(`Please use "${guestRef}" as your payment reference.`, { continued: false });
+    doc.fillColor('#854d0e').fontSize(8).font('Helvetica')
+       .text('This ensures we can identify and allocate your payment correctly.', 65, refY + 22);
+
+    // Footer
+    doc.moveTo(50, 760).lineTo(545, 760).strokeColor('#e5e7eb').lineWidth(1).stroke();
+    doc.fillColor(GREY).fontSize(8).font('Helvetica')
+       .text(`${BUSINESS.name} · ${BUSINESS.address} · ${BUSINESS.phone}`, 50, 768, { align: 'center', width: W });
+
+    doc.end();
+  });
 }
 
-async function generatePDF(html) {
-  const htmlPdf = require('html-pdf-node');
-  const file = { content: html };
-  const options = { format: 'A4', margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' } };
-  return await htmlPdf.generatePdf(file, options);
+// ─── Guest Directory PDF ──────────────────────────────────────────────────────
+
+function generateGuestDirectoryPDF(invoice, gateCode = '[Insert Code Here]', emergencyContact = '083 320 3760') {
+  return new Promise((resolve, reject) => {
+    const PDFDocument = require('pdfkit');
+    const chunks = [];
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    doc.on('data', c => chunks.push(c));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const W = doc.page.width - 100;
+    const today = new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
+    const guestName = `${invoice.firstname} ${invoice.surname}`;
+
+    // Logo
+    try { doc.image(logoPath(), 50, 40, { width: 130 }); } catch(e) {}
+
+    // Header right
+    doc.fillColor(GREEN).fontSize(18).font('Helvetica-Bold')
+       .text('Guest Directory', 0, 45, { align: 'right' })
+       .text('& Indemnity', 0, 66, { align: 'right' });
+    doc.fillColor(GREY).fontSize(9).font('Helvetica')
+       .text(`ACCOMMODATION DOCUMENT · ${today}`, 0, 90, { align: 'right' });
+
+    // Green line
+    doc.moveTo(50, 115).lineTo(545, 115).strokeColor(GREEN).lineWidth(3).stroke();
+
+    // Welcome box
+    doc.rect(50, 125, W, 42).fill('#f0fdf4');
+    doc.moveTo(50, 125).lineTo(50, 167).strokeColor(GREEN).lineWidth(4).stroke();
+    doc.fillColor(GREEN).fontSize(10).font('Helvetica-Bold')
+       .text(`Welcome to Rivier Plaas, ${guestName}!`, 62, 132);
+    doc.fillColor(DARK).fontSize(9).font('Helvetica')
+       .text('We are delighted to have you stay with us. Please review the following information carefully.', 62, 146, { width: W - 20 });
+
+    let y = 185;
+
+    // Section helper
+    function section(num, title) {
+      doc.rect(50, y, 22, 22).fill(GREEN);
+      doc.fillColor('#fff').fontSize(10).font('Helvetica-Bold').text(num, 50, y + 6, { width: 22, align: 'center' });
+      doc.fillColor(GREEN).fontSize(12).font('Helvetica-Bold').text(title, 78, y + 5);
+      doc.moveTo(50, y + 26).lineTo(545, y + 26).strokeColor('#e5e7eb').lineWidth(1).stroke();
+      y += 34;
+    }
+
+    // ─ Section 1: Check-in/out
+    section('1', 'Check-In & Check-Out Times');
+    doc.rect(50, y, (W/2)-5, 44).fill(LGREY);
+    doc.rect((W/2)+55, y, (W/2)-5, 44).fill(LGREY);
+    doc.fillColor(GREY).fontSize(8).font('Helvetica-Bold')
+       .text('CHECK-IN', 65, y + 7).text('CHECK-OUT', (W/2)+70, y + 7);
+    doc.fillColor(DARK).fontSize(20).font('Helvetica-Bold')
+       .text('14:00', 65, y + 18).text('10:00', (W/2)+70, y + 18);
+    doc.fillColor(GREY).fontSize(7).font('Helvetica')
+       .text('Rooms available from 2:00 PM', 65, y + 38)
+       .text('Strictly enforced for venue turnover', (W/2)+70, y + 38);
+    y += 60;
+
+    // ─ Section 2: Access & Safety
+    section('2', 'Important Access & Safety');
+    doc.rect(50, y, W, 22).fill(LGREY);
+    doc.rect(50, y+22, W, 22).fill('#fff');
+    doc.fillColor(DARK).fontSize(9).font('Helvetica-Bold')
+       .text('🔑  Main Gate Code', 60, y + 7)
+       .text('📞  Emergency Contact', 60, y + 29);
+    doc.fillColor(DARK).fontSize(9).font('Helvetica-Bold')
+       .text(gateCode, 300, y + 7)
+       .text(emergencyContact, 300, y + 29);
+    doc.rect(50, y, W, 44).strokeColor('#e5e7eb').lineWidth(1).stroke();
+    y += 58;
+
+    // ─ Section 3: House Rules
+    section('3', 'House Rules');
+    const rules = [
+      ['🔊', 'Noise:', 'Please respect other guests. Music and loud noise must be curtailed after 00:00.'],
+      ['🚬', 'Smoking:', 'Strictly no smoking inside the rooms or bridal suites. Please use designated outdoor areas.'],
+      ['💔', 'Damage:', 'Any breakages or damage to property will be billed to the guest.'],
+      ['💧', 'Water & Power:', 'Please use water sparingly. Ensure all lights and AC units are turned off when leaving the room.'],
+    ];
+    rules.forEach((r, i) => {
+      if (i % 2 === 0) doc.rect(50, y, W, 26).fill(LGREY);
+      doc.fillColor(DARK).fontSize(9).font('Helvetica-Bold').text(`${r[0]}  ${r[1]}`, 60, y + 8, { continued: true, width: 120 });
+      doc.font('Helvetica').fillColor(GREY).text(` ${r[2]}`, { width: W - 80, continued: false });
+      y += 26;
+    });
+    y += 10;
+
+    // ─ Section 4: Indemnity
+    section('4', 'Indemnity & Waiver');
+    doc.rect(50, y, W, 88).fill(YELLOW);
+    doc.rect(50, y, W, 88).strokeColor(YBORDER).lineWidth(1).stroke();
+    doc.fillColor(DARK).fontSize(9).font('Helvetica')
+       .text('By staying at Rivier Plaas, the guest acknowledges and agrees to the following:', 62, y + 8, { width: W - 24 });
+    const clauses = [
+      'The Guest enters and uses the premises, including the rooms, chapels, and gardens, entirely at their own risk.',
+      'Rivier Plaas, its owners, and employees shall not be held liable for any loss, damage, theft of personal property, or any injury/death sustained by the Guest while on the premises.',
+      'The Guest indemnifies the Venue against any claims arising from their stay or participation in any functions.',
+    ];
+    clauses.forEach((c, i) => {
+      doc.fillColor(DARK).fontSize(8).font('Helvetica')
+         .text(`${i+1}.  ${c}`, 62, y + 22 + (i * 20), { width: W - 24 });
+    });
+    y += 104;
+
+    // Signature section
+    doc.moveTo(50, y).lineTo(545, y).strokeColor('#e5e7eb').lineWidth(2).stroke();
+    y += 14;
+    doc.fillColor(GREY).fontSize(8).font('Helvetica-Bold').text('GUEST NAME', 50, y).text('DATE', 380, y);
+    doc.fillColor(DARK).fontSize(10).font('Helvetica').text(guestName, 50, y + 12).text(today, 380, y + 12);
+    doc.moveTo(50, y + 38).lineTo(320, y + 38).strokeColor(DARK).lineWidth(1).stroke();
+    doc.moveTo(380, y + 38).lineTo(545, y + 38).strokeColor(DARK).lineWidth(1).stroke();
+    doc.fillColor(GREY).fontSize(8).font('Helvetica-Bold').text('SIGNATURE', 50, y + 42).text('DATE SIGNED', 380, y + 42);
+
+    // Footer
+    doc.moveTo(50, 780).lineTo(545, 780).strokeColor('#e5e7eb').lineWidth(1).stroke();
+    doc.fillColor(GREY).fontSize(8).font('Helvetica')
+       .text(`${BUSINESS.name} · ${BUSINESS.address} · ${BUSINESS.phone}`, 50, 786, { align: 'center', width: W });
+
+    doc.end();
+  });
 }
 
-
-function generateGuestDirectoryHTML(invoice, gateCode = '[Insert Code Here]', emergencyContact = '083 320 3760') {
-  const logo = logoBase64();
-  const today = new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' });
-  const guestName = `${invoice.firstname} ${invoice.surname}`;
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #1a1a2e; background: #fff; padding: 40px; }
-
-  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 3px solid #4f7942; }
-  .logo { width: 160px; }
-  .header-right { text-align: right; }
-  .header-right h1 { font-size: 19px; font-weight: 800; color: #4f7942; line-height: 1.3; }
-  .header-right .subtitle { font-size: 11px; color: #9ca3af; margin-top: 4px; letter-spacing: 0.04em; }
-
-  .welcome-box { background: #f0fdf4; border-left: 4px solid #4f7942; border-radius: 0 8px 8px 0; padding: 14px 18px; margin-bottom: 24px; }
-  .welcome-box p { font-size: 12.5px; color: #374151; line-height: 1.7; }
-  .welcome-box strong { color: #4f7942; }
-
-  .section { margin-bottom: 22px; }
-  .section-title { font-size: 14px; font-weight: 800; color: #4f7942; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 8px; }
-  .section-num { background: #4f7942; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-
-  .times-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .time-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; }
-  .time-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 4px; }
-  .time-value { font-size: 18px; font-weight: 800; color: #1a1a2e; }
-  .time-note { font-size: 10px; color: #6b7280; margin-top: 3px; }
-
-  .access-table { width: 100%; border-collapse: collapse; }
-  .access-table td { padding: 10px 14px; border: 1px solid #e5e7eb; font-size: 13px; }
-  .access-table td:first-child { background: #f9fafb; font-weight: 700; width: 40%; color: #374151; }
-  .access-table td:last-child { color: #1a1a2e; font-weight: 600; letter-spacing: 0.05em; }
-
-  .rules-list { list-style: none; }
-  .rules-list li { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 12.5px; line-height: 1.6; }
-  .rules-list li:last-child { border-bottom: none; }
-  .rule-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .rule-text strong { color: #1a1a2e; }
-  .rule-text { color: #4b5563; }
-
-  .indemnity-box { background: #fefce8; border: 1px solid #fde047; border-radius: 8px; padding: 16px 18px; margin-bottom: 20px; }
-  .indemnity-box p { font-size: 12px; color: #374151; line-height: 1.7; margin-bottom: 8px; }
-  .indemnity-list { padding-left: 16px; }
-  .indemnity-list li { font-size: 12px; color: #4b5563; line-height: 1.7; margin-bottom: 4px; }
-
-  .signature-section { margin-top: 24px; padding-top: 20px; border-top: 2px solid #e5e7eb; }
-  .sig-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-  .sig-field { border-bottom: 1.5px solid #1a1a2e; padding-bottom: 4px; margin-top: 24px; }
-  .sig-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin-top: 6px; }
-  .sig-prefill { font-size: 13px; color: #4b5563; padding: 4px 0; }
-
-  .footer { margin-top: 28px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 14px; }
-  .green { color: #4f7942; }
-</style>
-</head>
-<body>
-
-<!-- Header -->
-<div class="header">
-  <img src="${logo}" class="logo" alt="Rivierplaas">
-  <div class="header-right">
-    <h1>Guest Directory<br>&amp; Indemnity</h1>
-    <div class="subtitle">ACCOMMODATION DOCUMENT · ${today}</div>
-  </div>
-</div>
-
-<!-- Welcome -->
-<div class="welcome-box">
-  <p><strong>Welcome to Rivier Plaas, ${guestName}!</strong> We are delighted to have you stay with us. To ensure a safe and pleasant experience for all guests, please review the following information carefully.</p>
-</div>
-
-<!-- Section 1: Check-in/out -->
-<div class="section">
-  <div class="section-title"><span class="section-num">1</span> Check-In &amp; Check-Out Times</div>
-  <div class="times-grid">
-    <div class="time-card">
-      <div class="time-label">Check-In</div>
-      <div class="time-value">14:00</div>
-      <div class="time-note">Rooms available from 2:00 PM</div>
-    </div>
-    <div class="time-card">
-      <div class="time-label">Check-Out</div>
-      <div class="time-value">10:00</div>
-      <div class="time-note">Strictly enforced for venue turnover</div>
-    </div>
-  </div>
-</div>
-
-<!-- Section 2: Access & Safety -->
-<div class="section">
-  <div class="section-title"><span class="section-num">2</span> Important Access &amp; Safety</div>
-  <table class="access-table">
-    <tr>
-      <td>🔑 Main Gate Code</td>
-      <td>${gateCode}</td>
-    </tr>
-    <tr>
-      <td>📞 Emergency Contact</td>
-      <td>${emergencyContact}</td>
-    </tr>
-  </table>
-</div>
-
-<!-- Section 3: House Rules -->
-<div class="section">
-  <div class="section-title"><span class="section-num">3</span> House Rules</div>
-  <ul class="rules-list">
-    <li>
-      <span class="rule-icon">🔊</span>
-      <span class="rule-text"><strong>Noise:</strong> Please respect other guests. Music and loud noise must be curtailed after 00:00.</span>
-    </li>
-    <li>
-      <span class="rule-icon">🚬</span>
-      <span class="rule-text"><strong>Smoking:</strong> Strictly no smoking inside the rooms or bridal suites. Please use designated outdoor areas only.</span>
-    </li>
-    <li>
-      <span class="rule-icon">💔</span>
-      <span class="rule-text"><strong>Damage:</strong> Any breakages or damage to property will be billed to the guest.</span>
-    </li>
-    <li>
-      <span class="rule-icon">💧</span>
-      <span class="rule-text"><strong>Water &amp; Power:</strong> Please use water sparingly. Ensure all lights and AC units are turned off when leaving the room.</span>
-    </li>
-  </ul>
-</div>
-
-<!-- Section 4: Indemnity -->
-<div class="section">
-  <div class="section-title"><span class="section-num">4</span> Indemnity &amp; Waiver</div>
-  <div class="indemnity-box">
-    <p>By staying at Rivier Plaas, the guest (hereafter referred to as "the Guest") acknowledges and agrees to the following:</p>
-    <ol class="indemnity-list">
-      <li>The Guest enters and uses the premises, including the rooms, chapels, and gardens, entirely at their own risk.</li>
-      <li>Rivier Plaas, its owners, and employees shall not be held liable for any loss, damage, theft of personal property, or any injury/death sustained by the Guest while on the premises, regardless of the cause.</li>
-      <li>The Guest indemnifies the Venue against any claims arising from their stay or participation in any functions.</li>
-    </ol>
-  </div>
-</div>
-
-<!-- Signature -->
-<div class="signature-section">
-  <div class="sig-grid">
-    <div>
-      <div class="sig-label">Guest Name</div>
-      <div class="sig-prefill">${guestName}</div>
-      <div class="sig-field"></div>
-      <div class="sig-label">Signature</div>
-    </div>
-    <div>
-      <div class="sig-label">Date</div>
-      <div class="sig-prefill">${today}</div>
-      <div class="sig-field"></div>
-      <div class="sig-label">Date signed</div>
-    </div>
-  </div>
-</div>
-
-<div class="footer">
-  Rivier Plaas · End Langenhoven Street, Riversdale, Meyerton, 1961 · 083 320 3760 · payments.rivierplaas@gmail.com
-</div>
-
-</body>
-</html>`;
-}
-
-module.exports = { generateInvoiceHTML, generateGuestDirectoryHTML, generatePDF, BUSINESS };
+module.exports = { generateInvoicePDF, generateGuestDirectoryPDF, BUSINESS };

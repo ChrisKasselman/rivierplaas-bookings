@@ -3,7 +3,7 @@ const router = express.Router();
 const { pool } = require('../db');
 const { requireLogin, requireManager } = require('../middleware/auth');
 const { auditLog } = require('../middleware/audit');
-const { generateInvoiceHTML, generateGuestDirectoryHTML, generatePDF } = require('../utils/invoice');
+const { generateInvoicePDF, generateGuestDirectoryPDF } = require('../utils/invoice');
 const { sendInvoiceEmail } = require('../utils/mailer');
 
 // Auto-generate invoice number
@@ -83,8 +83,7 @@ router.get('/invoices/:id/guest-directory', requireManager, async (req, res) => 
   if (!rows.length) return res.redirect('/invoices');
   const invoice = rows[0];
   const gateCode = process.env.GATE_CODE || '[Insert Code Here]';
-  const html = generateGuestDirectoryHTML(invoice, gateCode);
-  const pdf = await generatePDF(html);
+  const pdf = await generateGuestDirectoryPDF(invoice, gateCode);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="Rivierplaas-GuestDirectory-${invoice.firstname}-${invoice.surname}.pdf"`);
   res.send(pdf);
@@ -96,8 +95,7 @@ router.get('/invoices/:id/pdf', requireManager, async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM invoices WHERE id=?', [req.params.id]);
   if (!rows.length) return res.redirect('/invoices');
   const invoice = rows[0];
-  const html = generateInvoiceHTML(invoice);
-  const pdf = await generatePDF(html);
+  const pdf = await generateInvoicePDF(invoice);
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="Rivierplaas-Invoice-${invoice.invoice_number}.pdf"`);
   res.send(pdf);
@@ -111,11 +109,9 @@ router.post('/invoices/:id/send', requireManager, async (req, res) => {
   const invoice = rows[0];
   try {
     const gateCode = process.env.GATE_CODE || '[Insert Code Here]';
-    const invoiceHtml = generateInvoiceHTML(invoice);
-    const directoryHtml = generateGuestDirectoryHTML(invoice, gateCode);
     const [invoicePdf, directoryPdf] = await Promise.all([
-      generatePDF(invoiceHtml),
-      generatePDF(directoryHtml)
+      generateInvoicePDF(invoice),
+      generateGuestDirectoryPDF(invoice, gateCode)
     ]);
     await sendInvoiceEmail({
       to: invoice.email,
