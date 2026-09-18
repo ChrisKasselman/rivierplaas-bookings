@@ -18,8 +18,8 @@
 <% if(typeof sent !== 'undefined' && sent == 1) { %>
   <div class="alert-success" style="margin-bottom:1rem">Invoice sent successfully to <%= invoice.email %>.</div>
 <% } %>
-<% if(typeof error !== 'undefined' && error === 'email') { %>
-  <div class="alert alert-error" style="margin-bottom:1rem">Failed to send email. Please check your Gmail App Password in Railway environment variables.</div>
+<% if(typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-error" style="margin-bottom:1rem">Failed to send email: <%= decodeURIComponent(error) %></div>
 <% } %>
 
 <div class="form-card" style="max-width:680px">

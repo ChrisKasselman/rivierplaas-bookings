@@ -6,7 +6,10 @@ function createTransporter() {
     auth: {
       user: process.env.GMAIL_USER || 'payments.rivierplaas@gmail.com',
       pass: process.env.GMAIL_APP_PASSWORD,
-    }
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 }
 
@@ -30,7 +33,10 @@ async function sendInvoiceEmail({ to, name, invoiceNumber, invoiceType, pdfBuffe
     });
   }
 
-  await transporter.sendMail({
+  // Verify connection first
+  await transporter.verify();
+
+  const info = await transporter.sendMail({
     from: `"Rivierplaas" <${process.env.GMAIL_USER || 'payments.rivierplaas@gmail.com'}>`,
     to,
     subject: `Rivierplaas — ${typeLabel} #${invoiceNumber}`,
@@ -47,6 +53,9 @@ async function sendInvoiceEmail({ to, name, invoiceNumber, invoiceType, pdfBuffe
     `,
     attachments
   });
+
+  console.log('Email sent:', info.messageId);
+  return info;
 }
 
 module.exports = { sendInvoiceEmail };
