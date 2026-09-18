@@ -152,3 +152,44 @@ router.post('/invoices/:id/delete', requireManager, async (req, res) => {
 });
 
 module.exports = router;
+
+// ─── Test email connection ────────────────────────────────────────────────────
+
+router.get('/invoices/test-email', requireManager, async (req, res) => {
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || 'payments.rivierplaas@gmail.com',
+        pass: process.env.GMAIL_APP_PASSWORD,
+      }
+    });
+    await transporter.verify();
+    await transporter.sendMail({
+      from: `"Rivierplaas" <${process.env.GMAIL_USER || 'payments.rivierplaas@gmail.com'}>`,
+      to: req.session.user.email,
+      subject: 'Rivierplaas — Email test',
+      text: 'Email is working correctly from the Rivierplaas booking system.'
+    });
+    res.send(`
+      <div style="font-family:sans-serif;padding:2rem;max-width:500px;margin:auto">
+        <h2 style="color:#4f7942">Email sent successfully!</h2>
+        <p>A test email was sent to <strong>${req.session.user.email}</strong>.</p>
+        <p>GMAIL_USER: ${process.env.GMAIL_USER || 'NOT SET'}</p>
+        <p>GMAIL_APP_PASSWORD: ${process.env.GMAIL_APP_PASSWORD ? 'SET (' + process.env.GMAIL_APP_PASSWORD.length + ' chars)' : 'NOT SET'}</p>
+        <a href="/invoices">Back to invoices</a>
+      </div>
+    `);
+  } catch (err) {
+    res.send(`
+      <div style="font-family:sans-serif;padding:2rem;max-width:500px;margin:auto">
+        <h2 style="color:#dc2626">Email failed</h2>
+        <p><strong>Error:</strong> ${err.message}</p>
+        <p>GMAIL_USER: ${process.env.GMAIL_USER || 'NOT SET'}</p>
+        <p>GMAIL_APP_PASSWORD: ${process.env.GMAIL_APP_PASSWORD ? 'SET (' + process.env.GMAIL_APP_PASSWORD.length + ' chars)' : 'NOT SET'}</p>
+        <a href="/invoices">Back to invoices</a>
+      </div>
+    `);
+  }
+});
