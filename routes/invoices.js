@@ -45,7 +45,9 @@ router.get('/invoices/new', requireManager, async (req, res) => {
 });
 
 router.post('/invoices/new', requireManager, async (req, res) => {
-  const { booking_type, booking_id, invoice_type, firstname, surname, email, amount, description } = req.body;
+  const { booking_id, invoice_type, firstname, surname, email, amount, description } = req.body;
+  // Force booking_type to string in case form sends array
+  const booking_type = Array.isArray(req.body.booking_type) ? req.body.booking_type[0] : (req.body.booking_type || 'room');
   if (!firstname || !surname || !email || !amount || !invoice_type) {
     return res.render('invoices/form', {
       user: req.session.user,
